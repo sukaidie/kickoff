@@ -16,9 +16,9 @@ test('host adds, renames, removes players and edits match details with live cost
   if(path.includes('/rpc/')){
    const args=req.postDataJSON();expect(args.p_match).toBe(mid);
    if(path.endsWith('/leave_match'))team=team.filter(p=>p.user_id!==uid);
-   if(path.endsWith('/host_add_player')){expect(args.p_name).toBe('New guest');team.push({id:'added-guest',match_id:mid,user_id:null,name:args.p_name,created_at:'2026-10-30T12:01:00Z'});}
-   if(path.endsWith('/host_edit_player')){const p=team.find(p=>p.id===args.p_player);expect(p).toBeTruthy();p.name=args.p_name;}
-   if(path.endsWith('/host_remove_player'))team=team.filter(p=>p.id!==args.p_player);
+   if(path.endsWith('/add_player')){expect(args.p_name).toBe('New guest');team.push({id:'added-guest',match_id:mid,user_id:null,name:args.p_name,created_at:'2026-10-30T12:01:00Z'});}
+   if(path.endsWith('/edit_player')){const p=team.find(p=>p.id===args.p_player);expect(p).toBeTruthy();p.name=args.p_name;}
+   if(path.endsWith('/remove_player'))team=team.filter(p=>p.id!==args.p_player);
    if(path.endsWith('/host_edit_match')){
     if(args.p_title==='Rejected'){status=400;data={message:'Update rejected for testing'};}
     else{game={...game,title:args.p_title,venue:args.p_venue,match_date:args.p_date,match_time:args.p_time,starts_at:berlinInstant(args.p_date,args.p_time)};}
@@ -30,7 +30,7 @@ test('host adds, renames, removes players and edits match details with live cost
  const card=page.locator('.match-card').filter({hasText:'Host management'});
  const foreign=page.locator('.match-card').filter({hasText:'Other organiser'});
  await expect(foreign.getByRole('button',{name:'Edit match',exact:true})).toHaveCount(0);
- await expect(foreign.getByRole('button',{name:'Add player',exact:true})).toHaveCount(0);
+ await expect(foreign.getByRole('button',{name:'Add player',exact:true})).toBeVisible();
  await expect(card.locator('.match-date')).toContainText('18:00–19:30');
  await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));
  await expect(card.locator('.squad li small')).toHaveText(['Host',...Array(13).fill('Player')]);

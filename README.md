@@ -67,4 +67,12 @@ For upcoming, uncancelled matches the host can:
 
 All four operations check `auth.uid()` against the match owner inside restricted database functions and lock the match row. They cannot change ownership, link a guest to another identity, manage players from another match, or modify closed matches. Existing participant self-join and leave continue to work. Removal is not a ban; the participant can join again while the match is open.
 
-Host-added entries have a null `user_id` and a **Player** label. Only the host can manage these entries; typing the same name from another browser does not claim them. The host remains the organiser even if their own player entry is removed. Venue booking changes must be arranged separately. Host privileges still depend on retaining the original anonymous browser session.
+Additional player entries have a null `user_id`, a **Player** label, and an `added_by` owner. The person who adds an entry and the host can manage it; typing the same name from another browser does not claim it. The host remains the organiser even if their own player entry is removed. Venue booking changes must be arranged separately. Host privileges still depend on retaining the original anonymous browser session.
+
+## Updating an existing project: multiple players per user
+
+Run `supabase/migrations/20261030_multiple_players.sql` in the Supabase SQL Editor. It is transactional, safe to rerun, and preserves existing registrations. It adds `players.added_by`, backfills ownership of self-joined entries to that user and old host-added entries to the match host, and installs restricted player-management functions. Do not rerun the initial schema. New installations include this in `schema.sql`.
+
+Every signed-in anonymous visitor can **Add player** multiple times, even without joining personally. They can edit or remove their own primary registration and the extra entries they added; the host can manage everyone's entries. **Click to join / Leave match** still applies only to the user's own primary entry. Leaving does not remove other people they registered. One primary entry per browser identity per match remains enforced.
+
+Additional entries cannot impersonate a browser identity or transfer match ownership. Add/edit/remove are disabled for cancelled or started matches and recheck permissions in the database. All players count toward duration (15+ = 120 minutes), costs, and visible numbering. As with all anonymous identities, clearing browser storage loses management access.
