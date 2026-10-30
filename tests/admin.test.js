@@ -1,0 +1,41 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+import {pgcrypto} from '@electric-sql/pglite/contrib/pgcrypto';
+test('admin password is checked on server; tokens expire, bind to identity and allow only scoped record changes',async()=>{
+ const db=new PGlite({extensions:{pgcrypto}});try{
+ await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;create publication supabase_realtime;`);
+ await db.exec(await readFile(new URL('../supabase/schema.sql',import.meta.url),'utf8'));
+ const migration=await readFile(new URL('../supabase/migrations/20261030_admin.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);
+ const admin='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';await db.query('insert into auth.users values($1),($2)',[admin,other]);
+ await db.query("update kickoff_private.admin_config set password_hash=extensions.crypt($1,extensions.gen_salt('bf',4))",['test-admin-password']);
+ const as=async id=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
+ const login=async password=>(await db.query('select public.admin_login($1) as r',[password])).rows[0].r;
+ await as(other);const foreign=(await db.query("select public.create_match('Other owner','Cosmo','2099-01-09','18:00','Other') as id")).rows[0].id;
+ await as(admin);assert.equal((await login('wrong')).ok,false);await assert.rejects(db.query('select * from kickoff_private.admin_config'),/permission denied/);
+ await assert.rejects(db.query('select public.admin_mutate($1,$2,$3)', ['forged','delete_match',{match:foreign}]),/session expired/);
+ const session=await login('test-admin-password');assert.equal(session.ok,true);assert.ok(session.token.length>=64);
+ const mutate=async(action,data)=>(await db.query('select public.admin_mutate($1,$2,$3) as id',[session.token,action,data])).rows[0].id;
+ assert.equal((await db.query('select public.admin_valid($1) as valid',[session.token])).rows[0].valid,true);
+ await as(other);assert.equal((await db.query('select public.admin_valid($1) as valid',[session.token])).rows[0].valid,false);await assert.rejects(db.query('select public.admin_mutate($1,$2,$3)',[session.token,'delete_match',{match:foreign}]),/session expired/);await as(admin);
+ await mutate('edit_match',{match:foreign,title:'Edited past record',venue:'Cosmo',date:'2020-01-09',time:'18:00',cancelled:true,owner_id:admin});
+ let m=(await db.query('select * from public.matches where id=$1',[foreign])).rows[0];assert.equal(m.owner_id,other);assert.equal(m.cancelled,true);assert.equal(m.title,'Edited past record');
+ await mutate('edit_match',{match:foreign,title:m.title,venue:m.venue,date:'2020-01-09',time:'18:00',cancelled:false});
+ const pid=await mutate('add_player',{match:foreign,name:'Added by Admin'});await mutate('edit_player',{match:foreign,player:pid,name:'Edited player'});await mutate('set_paid',{match:foreign,player:pid,paid:true});await mutate('set_confirmed',{match:foreign,player:pid,confirmed:false});
+ let p=(await db.query('select * from public.players where id=$1',[pid])).rows[0];assert.equal(p.name,'Edited player');assert.equal(p.paid,true);assert.equal(p.confirmed,false);assert.equal(p.payment_updated_by,admin);
+ const created=await mutate('create_match',{title:'Admin historical record',venue:'Merkur Spiel-Arena',date:'2020-01-10',time:'06:00',name:'Admin'});assert.ok(created);
+ await assert.rejects(mutate('remove_player',{match:created,player:pid}),/Player not found/);
+ await assert.rejects(mutate('add_player',{match:foreign,name:' '}),/check constraint/);
+ await assert.rejects(mutate('sql',{sql:'delete from auth.users'}),/Unsupported admin action/);
+ await mutate('cancel_match',{match:foreign});await mutate('remove_player',{match:foreign,player:pid});assert.equal((await db.query('select * from public.players where id=$1',[pid])).rows.length,0);
+ await mutate('delete_match',{match:foreign});assert.equal((await db.query('select * from public.players where match_id=$1',[foreign])).rows.length,0);
+ await db.exec('reset role');const stored=(await db.query('select token_hash from kickoff_private.admin_sessions where user_id=$1',[admin])).rows[0].token_hash;assert.notEqual(stored,session.token);assert.ok((await db.query('select * from kickoff_private.admin_audit')).rows.length>=10);
+ await as(admin);await db.query('select public.admin_logout($1)',[session.token]);assert.equal((await db.query('select public.admin_valid($1) as valid',[session.token])).rows[0].valid,false);await assert.rejects(mutate('delete_match',{match:created}),/session expired/);
+ const second=await login('test-admin-password');await db.exec('reset role');await db.exec("update kickoff_private.admin_sessions set expires_at=now()-interval '1 second'");await as(admin);assert.equal((await db.query('select public.admin_valid($1) as valid',[second.token])).rows[0].valid,false);
+ for(let i=0;i<5;i++)assert.equal((await login('wrong')).ok,false);assert.match((await login('test-admin-password')).message,/Too many attempts/);
+ await db.exec('reset role');await db.exec("update kickoff_private.admin_attempts set window_started=now()-interval '16 minutes'");await as(admin);assert.equal((await login('test-admin-password')).ok,true);
+ await db.exec('reset role');await db.exec('update kickoff_private.admin_config set attempts=40');await as(other);assert.match((await login('test-admin-password')).message,/Too many attempts/);
+ await db.exec('reset role;set role anon;');await assert.rejects(db.query('select public.admin_login($1)',['test-admin-password']),/permission denied/);
+ }finally{await db.close();}
+});

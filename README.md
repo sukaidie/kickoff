@@ -108,3 +108,13 @@ Merkur player rows display plain **Confirmed / Unconfirmed** status text. **Edit
 ## Default confirmation for new registrations
 
 Run `supabase/migrations/20261030_confirmed_default.sql` after the Merkur confirmation migration. New registrations now default to **Confirmed**. Existing records, including manually set **Unconfirmed** states, are preserved. Host and registrant editing permissions are unchanged.
+
+## Optional Admin mode
+
+Apply `supabase/migrations/20261030_admin.sql` in the Supabase SQL Editor **after the earlier feature migrations**. This optional migration is intentionally separate from `schema.sql`: it enables the shared-password admin capability requested for this site. It stores a bcrypt hash in a private, RLS-enabled schema. The initial configured password is the one supplied during setup; neither that plaintext password nor an admin token is bundled in the browser assets. Rerunning the migration preserves existing credential settings and sessions.
+
+Click **Admin**, enter the password, and click **Unlock Admin**. Admin mode can create, edit, cancel, restore and delete any match (including historical/cancelled matches), manage every player's name and registration, and change payment/confirmation values. It does not expose Supabase Auth accounts, database credentials, arbitrary SQL, or private admin tables. Match ownership and venue validity constraints remain intact; cancelled records can be restored through the **Cancelled** checkbox in **Edit match**. Destructive deletions retain confirmation prompts.
+
+Every elevated mutation uses the restricted `admin_mutate` RPC with a cryptographically random token. Server-side sessions are bound to the current anonymous browser identity, expire after one hour, and are revoked by **Exit Admin**. Browser tokens are held only in memory, so a page reload also ends local admin mode. Failed password attempts persist: at most five attempts per identity and forty across the site per fifteen-minute window. The server stores only token hashes and a private action audit trail. Ordinary host/registrant permissions are unchanged. Anyone who knows the shared password can administer the site's match/player data.
+
+To rotate the password, use the SQL Editor to set `kickoff_private.admin_config.password_hash` with `extensions.crypt(<new password>, extensions.gen_salt('bf',10))`, then delete rows from `kickoff_private.admin_sessions` to revoke existing sessions. Enter new passwords securely in the SQL Editor; do not place them in browser source or repository files. The migration assumes the standard Supabase `pgcrypto` extension in the `extensions` schema.
