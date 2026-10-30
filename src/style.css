@@ -33,3 +33,5 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 .has-payment .player-controls{display:grid;grid-template-columns:58px 50px;gap:10px;align-items:center;text-align:right}
 .has-payment .player-controls>b{font-size:12px;white-space:nowrap}
 .has-payment .payment-status{font-size:11px;line-height:1.4;text-align:right}
+
+.has-payment .player-controls>div{grid-column:1/-1;justify-content:flex-end}.player-controls>.attendance-confirmed{color:#287144;font-size:11px;font-weight:650}

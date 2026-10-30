@@ -25,12 +25,12 @@ test('schedule defaults to future open games; history contains past and cancelle
  assert.deepEqual(scheduleView(games,'Past matches',now).map(m=>m.id),['cancelled','starting','old']);assert.equal(games[0].id,'later');
 });
 
-test('Cosmo payment tracking starts at actual match end, including the 15-player extension',()=>{
+test('Cosmo payment tracking is available before, during and after a game',()=>{
  const m={venue:'Cosmo',starts_at:'2026-10-30T17:00:00Z',cancelled:false};
- const now=Date.parse(m.starts_at);
- assert.equal(paymentTrackingAvailable(m,14,now+89*60000),false);
+ const now=Date.parse(m.starts_at);assert.equal(paymentTrackingAvailable(m,14,now-60000),true);
+ assert.equal(paymentTrackingAvailable(m,14,now+89*60000),true);
  assert.equal(paymentTrackingAvailable(m,14,now+90*60000),true);
- assert.equal(paymentTrackingAvailable(m,15,now+105*60000),false);
+ assert.equal(paymentTrackingAvailable(m,15,now+105*60000),true);
  assert.equal(paymentTrackingAvailable(m,15,now+120*60000),true);
  assert.equal(paymentTrackingAvailable({...m,venue:'Merkur Spiel-Arena'},14,now+200*60000),false);
  assert.equal(paymentTrackingAvailable({...m,cancelled:true},14,now+200*60000),false);

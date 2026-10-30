@@ -21,6 +21,6 @@ export function scheduleView(matches,view,now=Date.now()) {
   .sort((a,b)=>view==='Upcoming matches'?Date.parse(a.starts_at)-Date.parse(b.starts_at):Date.parse(b.starts_at)-Date.parse(a.starts_at));
 }
 
-export function paymentTrackingAvailable(match,playerCount,now=Date.now()) {
- return match.venue==='Cosmo'&&!match.cancelled&&Date.parse(match.starts_at)+duration(playerCount)*60000<=now;
+export function paymentTrackingAvailable(match) {
+ return match.venue==='Cosmo'&&!match.cancelled;
 }
