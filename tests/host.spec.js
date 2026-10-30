@@ -34,10 +34,11 @@ test('host adds, renames, removes players and edits match details with live cost
  await expect(card.locator('.match-date')).toContainText('18:00–19:30');
  await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));
  await expect(card.locator('.squad li small')).toHaveText(['Host',...Array(13).fill('Player')]);
+ await expect(page.locator('#upcoming-count')).toHaveText('2');await expect(page.locator('#registration-count')).toHaveText('14');
  const before=await card.locator('.price').innerText();
  await card.getByRole('button',{name:'Add someone else',exact:true}).click();
  const pf=page.locator('#player-form');await pf.getByLabel('Player name').fill('New guest');await pf.getByRole('button',{name:'Save player'}).click();
- await expect(card.locator('.facts')).toContainText('15 players');await expect(card.locator('.player-number')).toHaveText(Array.from({length:15},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–20:00');
+ await expect(card.locator('.facts')).toContainText('15 players');await expect(page.locator('#registration-count')).toHaveText('15');await expect(card.locator('.player-number')).toHaveText(Array.from({length:15},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–20:00');
  await expect(card.locator('.price')).not.toHaveText(before);
  await card.getByRole('button',{name:'Edit New guest',exact:true}).click();await pf.getByLabel('Player name').fill('Renamed guest');await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.squad')).toContainText('Renamed guest');
  page.once('dialog',d=>d.accept());await card.getByRole('button',{name:'Remove Renamed guest',exact:true}).click();await expect(card.locator('.facts')).toContainText('14 players');await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–19:30');
