@@ -85,7 +85,7 @@ The homepage opens on **Upcoming matches**, showing uncancelled matches with a f
 
 Run `supabase/migrations/20261030_player_payments.sql` in the Supabase SQL Editor (transactional and safe to rerun). Do not rerun `schema.sql`. It adds an unpaid-by-default `paid` field plus the last update time and host identity; existing entries are preserved.
 
-After an uncancelled **Cosmo** match ends, each player row shows **Paid** or **Unpaid**. The actual end is kick-off plus 90 minutes, or 120 minutes with 15+ players. Everyone can view the status; only the match's host can change it using **Mark paid / Mark unpaid**. The database independently enforces venue, ownership, end time and player membership. No payment controls or statuses appear for Merkur, cancelled matches or games still in progress. Status is a manual record, not a payment processor confirmation; no funds are collected. Changing it never changes costs or attendance.
+After an uncancelled **Cosmo** match ends, each player row shows **Paid** or **Unpaid**. The actual end is kick-off plus 90 minutes, or 120 minutes with 15+ players. Everyone can view the status; only the match's host can change it through the separate **Edit payment status** dialog. Player rows display plain, non-interactive status text. The database independently enforces venue, ownership, end time and player membership. No payment controls or statuses appear for Merkur, cancelled matches or games still in progress. Status is a manual record, not a payment processor confirmation; no funds are collected. Changing it never changes costs or attendance.
 
 ### Completed test match
 
