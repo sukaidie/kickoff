@@ -27,7 +27,7 @@ test('players and costs stay visible through polling and filtering; only organis
  await expect(own.getByRole('button',{name:'Delete match'})).toBeVisible();
  await expect(own.locator('.match-date')).toContainText('18:00–19:30');
  await expect(otherCard.getByRole('button',{name:'Delete match'})).toHaveCount(0);
- await expect(own.getByRole('heading',{name:'Players & costs'})).toBeVisible();
+ await expect(own.locator('.squad-section h4')).toHaveCount(0);
  await expect(own.locator('.squad')).toBeVisible();
  await expect(own.locator('summary')).toHaveCount(0);
  const reads=matchReads;playerName='Updated player';
