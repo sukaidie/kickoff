@@ -20,3 +20,5 @@ input::-webkit-datetime-edit{padding:0;min-width:0}
 @media(max-width:640px){.form-row{grid-template-columns:minmax(0,1fr);gap:0}dialog input,dialog select{font-size:16px}}
 
 .host-badge{background:#1b4837;color:white;font-weight:750;border:1px solid #1b4837}
+
+.status-open{display:inline-flex;align-items:center;gap:7px;background:#d9f4df;color:#155b2c;border:1px solid #62a875;padding:8px 12px;font-size:12px;font-weight:800;border-radius:6px}.status-open::before{content:"";width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#218542}
