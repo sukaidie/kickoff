@@ -17,11 +17,13 @@ test('non-host can add multiple players and manage their entries without gaining
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
  });
  await page.goto('/');const card=page.locator('.match-card');const pf=page.locator('#player-form');
- await expect(card.getByRole('button',{name:'Add player',exact:true})).toBeVisible();await expect(card.locator('.match-date')).toContainText('18:00–19:30');
+ await expect(card.getByRole('button',{name:'Add someone else',exact:true})).toBeVisible();await expect(card.locator('.match-date')).toContainText('18:00–19:30');
+ const joinButton=card.getByRole('button',{name:'Click to join',exact:true}),addButton=card.getByRole('button',{name:'Add someone else',exact:true});const joinBox=await joinButton.boundingBox(),addBox=await addButton.boundingBox();expect(addBox.y).toBeGreaterThanOrEqual(joinBox.y+joinBox.height);expect(await joinButton.evaluate(b=>getComputedStyle(b).backgroundColor)).not.toBe(await addButton.evaluate(b=>getComputedStyle(b).backgroundColor));
+
  for(const label of ['Edit match','Cancel match','Delete match'])await expect(card.getByRole('button',{name:label,exact:true})).toHaveCount(0);
  await expect(card.getByRole('button',{name:'Remove Existing 1',exact:true})).toHaveCount(0);
  const initialPrice=await card.locator('.price').innerText();
- for(const [name,count] of [['Friend one',15],['Friend two',16]]){await card.getByRole('button',{name:'Add player',exact:true}).click();await pf.getByLabel('Player name').fill(name);await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.facts')).toContainText(`${count} players`);}
+ for(const [name,count] of [['Friend one',15],['Friend two',16]]){await card.getByRole('button',{name:'Add someone else',exact:true}).click();await pf.getByLabel('Player name').fill(name);await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.facts')).toContainText(`${count} players`);}
  await expect(card.locator('.match-date')).toContainText('18:00–20:00');await expect(card.locator('.price')).not.toHaveText(initialPrice,{useInnerText:true});await expect(card.locator('.player-number')).toHaveText(Array.from({length:16},(_,i)=>String(i+1)));
  await card.getByRole('button',{name:'Edit Friend one',exact:true}).click();await pf.getByLabel('Player name').fill('Renamed friend');await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.squad')).toContainText('Renamed friend');
  for(const [name,count] of [['Renamed friend',15],['Friend two',14]]){page.once('dialog',d=>d.accept());await card.getByRole('button',{name:`Remove ${name}`,exact:true}).click();await expect(card.locator('.facts')).toContainText(`${count} players`);}

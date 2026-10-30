@@ -30,12 +30,12 @@ test('host adds, renames, removes players and edits match details with live cost
  const card=page.locator('.match-card').filter({hasText:'Host management'});
  const foreign=page.locator('.match-card').filter({hasText:'Other organiser'});
  await expect(foreign.getByRole('button',{name:'Edit match',exact:true})).toHaveCount(0);
- await expect(foreign.getByRole('button',{name:'Add player',exact:true})).toBeVisible();
+ await expect(foreign.getByRole('button',{name:'Add someone else',exact:true})).toBeVisible();
  await expect(card.locator('.match-date')).toContainText('18:00–19:30');
  await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));
  await expect(card.locator('.squad li small')).toHaveText(['Host',...Array(13).fill('Player')]);
  const before=await card.locator('.price').innerText();
- await card.getByRole('button',{name:'Add player',exact:true}).click();
+ await card.getByRole('button',{name:'Add someone else',exact:true}).click();
  const pf=page.locator('#player-form');await pf.getByLabel('Player name').fill('New guest');await pf.getByRole('button',{name:'Save player'}).click();
  await expect(card.locator('.facts')).toContainText('15 players');await expect(card.locator('.player-number')).toHaveText(Array.from({length:15},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–20:00');
  await expect(card.locator('.price')).not.toHaveText(before);
@@ -45,7 +45,7 @@ test('host adds, renames, removes players and edits match details with live cost
  await mf.getByLabel('Match name').fill('Rejected');await mf.getByRole('button',{name:'Save changes'}).click();await expect(mf.locator('.form-error')).toContainText('Update rejected for testing');await expect(mf).toBeVisible();
  await mf.getByLabel('Match name').fill('Updated match');await mf.getByLabel('Venue').selectOption('Merkur Spiel-Arena');await mf.getByLabel('Date',{exact:true}).fill('2099-01-11');await expect(mf.getByLabel('Kick-off time')).not.toHaveAttribute('min');await expect(mf.getByLabel('Kick-off time')).not.toHaveAttribute('max');await mf.getByLabel('Kick-off time').fill('23:30');await mf.getByRole('button',{name:'Save changes'}).click();
  const updated=page.locator('.match-card').filter({hasText:'Updated match'});await expect(updated).toBeVisible();await expect(updated.locator('.match-date')).toContainText('23:30–01:00 (+1 day)');await expect(updated.locator('.price strong')).toHaveText('Free');await expect(updated.locator('.price')).not.toContainText('/ player');await expect(updated.locator('.squad .player-controls>b')).toHaveText(Array(14).fill('Free'));await expect(updated.locator('.cancellation-notice')).toHaveCount(0);await expect(updated.locator('.venue-label')).toContainText('Merkur Spiel-Arena');
- await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add player',exact:true})).toBeVisible();
- await updated.getByRole('button',{name:'Leave match',exact:true}).click();await expect(updated.locator('.facts')).toContainText('13 players');await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add player',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Cancel match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Delete match',exact:true})).toBeVisible();
+ await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add someone else',exact:true})).toBeVisible();
+ await updated.getByRole('button',{name:'Leave match',exact:true}).click();await expect(updated.locator('.facts')).toContainText('13 players');await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add someone else',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Cancel match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Delete match',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
