@@ -21,3 +21,15 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 .payment-status{display:inline;font-size:11px;font-weight:650;white-space:nowrap}.is-paid{color:#287144}.is-unpaid{color:#9a671b}.card-actions .manage-payments{justify-content:center;font-size:13px}
 .demo-tools{padding:18px;margin-bottom:22px;border:1px dashed #adbd9c;border-radius:12px;background:#edf3e7;display:flex;gap:18px;align-items:center;justify-content:space-between}.demo-tools strong{font-size:14px}.demo-tools p{font-size:12px;margin:8px 0 0}.demo-tools .secondary{flex-shrink:0;justify-content:center;font-size:12px}@media(max-width:700px){.demo-tools{flex-direction:column;align-items:stretch}}
 #payment-form>.primary{margin-top:22px;justify-content:center}
+
+/* Compact, aligned player identity and post-match payment columns. */
+.squad li>.player-identity{flex-wrap:nowrap;align-items:center;gap:9px;min-width:0}
+.player-name{display:flex;flex-direction:column;gap:3px;min-width:0;line-height:1.35}
+.player-display-name{overflow-wrap:anywhere;font-weight:550}
+.player-name small{font-size:10px;line-height:1.25;color:#8b9684}
+.squad-columns{display:grid;grid-template-columns:minmax(0,1fr) 58px 50px;gap:10px;padding:0 0 9px;font-size:10px;color:#8a9780;line-height:1.4}
+.squad-columns>span:not(:first-child){text-align:right}
+.squad li.has-payment{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:10px;padding:12px 0;min-height:58px}
+.has-payment .player-controls{display:grid;grid-template-columns:58px 50px;gap:10px;align-items:center;text-align:right}
+.has-payment .player-controls>b{font-size:12px;white-space:nowrap}
+.has-payment .payment-status{font-size:11px;line-height:1.4;text-align:right}
