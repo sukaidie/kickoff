@@ -48,7 +48,7 @@ test('Merkur accepts early and late kick-offs while Cosmo keeps its limits',asyn
  await page.goto('/');await page.locator('#new-top').click();const form=page.locator('#create-form');const time=form.getByLabel('Kick-off time');
  await form.getByLabel('Match name').fill('Merkur early or late');await form.getByLabel('Date',{exact:true}).fill('2099-01-09');await form.getByLabel('Your name').fill('Host');
  await expect(time).toHaveAttribute('min','10:00');await expect(time).toHaveAttribute('max','20:00');
- await form.getByLabel('Venue').selectOption('Merkur Spiel-Arena');await expect(time).not.toHaveAttribute('min');await expect(time).not.toHaveAttribute('max');await expect(form.locator('#estimate')).toContainText('Free');
+ await expect(time).toHaveValue('18:00');await form.getByLabel('Venue').selectOption('Merkur Spiel-Arena');await expect(time).toHaveValue('09:00');await expect(time).not.toHaveAttribute('min');await expect(time).not.toHaveAttribute('max');await expect(form.locator('#estimate')).toContainText('Free');
  for(const value of ['06:00','23:30']){await time.fill(value);expect(await time.evaluate(el=>el.checkValidity())).toBe(true);await form.getByRole('button',{name:'Create match & join'}).click();await expect.poll(()=>submitted.length).toBe(value==='06:00'?1:2);expect(submitted.at(-1).p_time).toBe(value);await expect(form.locator('.form-error')).toContainText('Test backend unavailable');}
- await form.getByLabel('Venue').selectOption('Cosmo');await expect(time).toHaveAttribute('min','10:00');await expect(time).toHaveAttribute('max','20:00');expect(await time.evaluate(el=>el.checkValidity())).toBe(false);
+ await form.getByLabel('Venue').selectOption('Cosmo');await expect(time).toHaveValue('18:00');await time.fill('23:30');await expect(time).toHaveAttribute('min','10:00');await expect(time).toHaveAttribute('max','20:00');expect(await time.evaluate(el=>el.checkValidity())).toBe(false);
 });
