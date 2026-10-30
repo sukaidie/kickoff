@@ -37,3 +37,14 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 .has-payment .player-controls>div{grid-column:1/-1;justify-content:flex-end}.player-controls>.attendance-confirmed{color:#287144;font-size:11px;font-weight:650}
 
 .confirmation-columns{grid-template-columns:minmax(0,1fr) 118px}.squad li.has-confirmation{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:10px}.confirmation-status{font-size:11px;font-weight:650;white-space:nowrap;line-height:1.4}#confirmation-form>.primary{margin-top:22px;justify-content:center}
+
+/* Consistent action buttons at the bottom of every match card. */
+.card-actions{gap:10px;margin-top:20px}
+.card-actions .host-actions{margin-top:0}
+.card-actions button,.card-actions .primary[data-join],.card-actions .secondary,.card-actions .add-someone,.card-actions .manage-payments,.card-actions .host-actions .secondary{display:flex;align-items:center;justify-content:center;text-align:center;width:100%;min-height:48px;padding:13px 16px;border-radius:10px;font-size:14px;font-weight:650;line-height:1.45;letter-spacing:0}
+.card-actions .secondary,.card-actions .host-actions .secondary{background:#eef3e9;border:1px solid #d6e1ce;color:#284b35}
+.card-actions .secondary:hover{background:#e3edda;border-color:#abc39b}
+.card-actions .add-someone{background:#fff;border-color:#b6cba9;color:#3c5d32}
+.card-actions .add-someone:hover{background:#f2f7ed}
+.card-actions .cancel{background:#fff8f3;border:1px solid #ecd9cc;color:#99563b}
+.card-actions .cancel:hover{background:#faeee5;border-color:#d8b8a2;color:#7e3d25}
