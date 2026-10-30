@@ -35,3 +35,5 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 .has-payment .payment-status{font-size:11px;line-height:1.4;text-align:right}
 
 .has-payment .player-controls>div{grid-column:1/-1;justify-content:flex-end}.player-controls>.attendance-confirmed{color:#287144;font-size:11px;font-weight:650}
+
+.confirmation-columns{grid-template-columns:minmax(0,1fr) 118px}.squad li.has-confirmation{display:grid;grid-template-columns:minmax(0,1fr) 118px;gap:10px}.confirmation-status{font-size:11px;font-weight:650;white-space:nowrap;line-height:1.4}#confirmation-form>.primary{margin-top:22px;justify-content:center}

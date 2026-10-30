@@ -97,4 +97,10 @@ One demo is retained per identity. Repeated creation calls do not duplicate the 
 
 Run `supabase/migrations/20261030_pre_match_payments.sql` after the original payment migration. It keeps host-only permissions and allows recording paid/unpaid before the game ends. It does not change existing payment values. New installs already include this in `schema.sql`.
 
-Merkur lists use the heading **Players** and show **Confirmed** for every registered player. They have no fee panel, amount/status columns, or payment editor; registration remains free. Cosmo keeps its existing pricing and live shares.
+Merkur lists use the heading **Players** with **Player / Status** columns. Every new and pre-migration entry defaults to **Unconfirmed**. They have no fee panel, amount column, or payment editor; registration remains free. Cosmo keeps its existing pricing and live shares.
+
+## Updating existing projects: Merkur confirmation status
+
+Run `supabase/migrations/20261030_merkur_confirmation.sql` in the Supabase SQL Editor. It is safe to rerun and preserves registrations. Existing and new entries default to `confirmed = false` (**Unconfirmed**). Confirmation is independent of Cosmo's `paid` state.
+
+Merkur player rows display plain **Confirmed / Unconfirmed** status text. **Edit confirmation status** opens a separate editor: hosts can choose any player, while participants and registrants can choose only their own primary entry or extra entries they submitted (`user_id` / `added_by`). The database repeats these checks, verifies the player belongs to the selected Merkur match, and records the last updater/time. Cancelled matches cannot be updated. An unrelated browser identity or a matching typed name does not grant access. Cosmo payment permissions and calculations are unchanged.
