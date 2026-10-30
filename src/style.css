@@ -24,3 +24,5 @@ input::-webkit-datetime-edit{padding:0;min-width:0}
 .status-open{display:inline-flex;align-items:center;gap:7px;background:#d9f4df;color:#155b2c;border:1px solid #62a875;padding:8px 12px;font-size:12px;font-weight:800;border-radius:6px}.status-open::before{content:"";width:8px;height:8px;flex-shrink:0;border-radius:50%;background:#218542}
 
 .venue-label{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}.venue-icon{font-size:20px;line-height:1;flex-shrink:0}
+
+.card-actions .primary[data-join],#join-form .primary{justify-content:center;text-align:center;font-size:16px;font-weight:750}
