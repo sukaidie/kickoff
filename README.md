@@ -17,7 +17,7 @@ npm run build
 
 `npm run test:e2e` runs Chromium UI checks at mobile and desktop sizes. The provided cloud environment has `/usr/bin/chromium`; on another machine install Chromium and update the executable path in `playwright.config.js`.
 
-Local development without Supabase settings displays an explicit setup notice. Production uses the public project URL and publishable key in `src/public-config.js`; build-time environment variables override them. It does not silently store local matches or pretend data is shared.
+Development and production both use the public project URL and publishable key in `src/public-config.js`; environment variables override them. It does not silently store local matches or pretend data is shared.
 
 ## Required Supabase setup
 
