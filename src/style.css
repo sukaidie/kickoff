@@ -18,3 +18,5 @@ input[type="date"],input[type="time"]{display:block;min-width:0;max-width:100%;w
 input::-webkit-date-and-time-value{text-align:left;min-height:1.5em}
 input::-webkit-datetime-edit{padding:0;min-width:0}
 @media(max-width:640px){.form-row{grid-template-columns:minmax(0,1fr);gap:0}dialog input,dialog select{font-size:16px}}
+
+.host-badge{background:#1b4837;color:white;font-weight:750;border:1px solid #1b4837}

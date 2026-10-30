@@ -15,6 +15,7 @@ test('host adds, renames, removes players and edits match details with live cost
   if(path.endsWith('/user'))data=user;
   if(path.includes('/rpc/')){
    const args=req.postDataJSON();expect(args.p_match).toBe(mid);
+   if(path.endsWith('/leave_match'))team=team.filter(p=>p.user_id!==uid);
    if(path.endsWith('/host_add_player')){expect(args.p_name).toBe('New guest');team.push({id:'added-guest',match_id:mid,user_id:null,name:args.p_name,created_at:'2026-10-30T12:01:00Z'});}
    if(path.endsWith('/host_edit_player')){const p=team.find(p=>p.id===args.p_player);expect(p).toBeTruthy();p.name=args.p_name;}
    if(path.endsWith('/host_remove_player'))team=team.filter(p=>p.id!==args.p_player);
@@ -43,5 +44,7 @@ test('host adds, renames, removes players and edits match details with live cost
  await mf.getByLabel('Match name').fill('Rejected');await mf.getByRole('button',{name:'Save changes'}).click();await expect(mf.locator('.form-error')).toContainText('Update rejected for testing');await expect(mf).toBeVisible();
  await mf.getByLabel('Match name').fill('Updated match');await mf.getByLabel('Venue').selectOption('Merkur Spiel-Arena');await mf.getByLabel('Date',{exact:true}).fill('2099-01-11');await expect(mf.getByLabel('Kick-off time')).not.toHaveAttribute('min');await expect(mf.getByLabel('Kick-off time')).not.toHaveAttribute('max');await mf.getByLabel('Kick-off time').fill('23:30');await mf.getByRole('button',{name:'Save changes'}).click();
  const updated=page.locator('.match-card').filter({hasText:'Updated match'});await expect(updated).toBeVisible();await expect(updated.locator('.match-date')).toContainText('23:30–01:00 (+1 day)');await expect(updated.locator('.price strong')).toHaveText('Free');await expect(updated.locator('.price')).not.toContainText('/ player');await expect(updated.locator('.squad .player-controls>b')).toHaveText(Array(14).fill('Free'));await expect(updated.locator('.cancellation-notice')).toHaveCount(0);await expect(updated.locator('.venue-label')).toContainText('Merkur Spiel-Arena');
+ await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add player',exact:true})).toBeVisible();
+ await updated.getByRole('button',{name:'Leave match',exact:true}).click();await expect(updated.locator('.facts')).toContainText('13 players');await expect(updated.locator('.host-badge')).toHaveText('Host');await expect(updated.getByRole('button',{name:'Edit match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Add player',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Cancel match',exact:true})).toBeVisible();await expect(updated.getByRole('button',{name:'Delete match',exact:true})).toBeVisible();
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);
 });
