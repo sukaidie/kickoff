@@ -25,4 +25,4 @@ input::-webkit-datetime-edit{padding:0;min-width:0}
 
 .venue-label{display:inline-flex;align-items:center;gap:8px;font-size:16px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}.venue-icon{font-size:20px;line-height:1;flex-shrink:0}
 
-.card-actions .primary[data-join],#join-form .primary{justify-content:center;text-align:center;font-size:16px;font-weight:750}
+.card-actions .primary[data-join],#join-form .primary,#create-form button[type="submit"]{justify-content:center;text-align:center;font-size:16px;font-weight:750}
