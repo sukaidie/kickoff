@@ -7,3 +7,10 @@ export function shares(total,count) {return count ? Array.from({length:count},(_
 export function voucherPercent(start,now=Date.now()) {const hours=(new Date(start).getTime()-now)/3600000;return hours>48?100:hours>=24?50:0;}
 // Convert a venue-local wall clock to an instant, independently of the visitor's timezone.
 export function berlinInstant(date,time) {let value=new Date(`${date}T${time}:00Z`);for(let i=0;i<3;i++){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(value).map(p=>[p.type,p.value]));const represented=Date.parse(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:00Z`);value=new Date(+value+Date.parse(`${date}T${time}:00Z`)-represented);}return value.toISOString();}
+
+export function timeRange(startsAt,count) {
+ const start=new Date(startsAt),end=new Date(+start+duration(count)*60000);
+ const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'});
+ return `${time.format(start)}–${time.format(end)}${day.format(start)!==day.format(end)?' (+1 day)':''}`;
+}
