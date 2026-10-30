@@ -1,7 +1,7 @@
 import {test,expect} from '@playwright/test';
 test('configured site reports backend errors and remains responsive; form calculates quote',async({page})=>{const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://pikwbxrctsfgnqipuevz.supabase.co/**',route=>route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({msg:'Test backend unavailable',message:'Test backend unavailable'})}));await page.goto('/');await expect(page.getByRole('heading',{name:'Match schedule'})).toBeVisible();await expect(page.getByRole('status')).toContainText('Connection unavailable: Test backend unavailable');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('#new-top').click();await page.getByLabel('Match name').fill('Friday football');await page.getByLabel('Date',{exact:true}).fill('2027-01-08');await page.getByLabel('Kick-off time').fill('13:30');await expect(page.locator('#estimate')).toContainText('€84.00');await page.getByLabel('Your name',{exact:true}).first().fill('Alex');await page.getByRole('button',{name:'Create match & join'}).click();await expect(page.locator('#create-form .form-error')).toContainText('Test backend unavailable');await page.getByRole('button',{name:'Close',exact:true}).first().click();await page.getByRole('button',{name:'Merkur Spiel-Arena',exact:true}).click();await expect(page.getByRole('heading',{name:'No matches yet'})).toBeVisible();expect(errors).toEqual([]);});
 
-test('squad expansion survives polling and filtering; only organiser can delete',async({page})=>{
+test('players and costs stay visible through polling and filtering; only organiser can delete',async({page})=>{
  await page.clock.install();
  const uid='11111111-1111-4111-8111-111111111111';
  const other='22222222-2222-4222-8222-222222222222';
@@ -22,22 +22,18 @@ test('squad expansion survives polling and filtering; only organiser can delete'
  const otherCard=page.locator('.match-card').filter({hasText:'Another organiser match'});
  await expect(own.getByRole('button',{name:'Delete match'})).toBeVisible();
  await expect(otherCard.getByRole('button',{name:'Delete match'})).toHaveCount(0);
- await own.locator('summary').click();
- await expect(own.locator('details')).toHaveAttribute('open','');
+ await expect(own.getByRole('heading',{name:'Players & costs'})).toBeVisible();
+ await expect(own.locator('.squad')).toBeVisible();
+ await expect(own.locator('summary')).toHaveCount(0);
  const reads=matchReads;playerName='Updated player';
  await page.clock.fastForward(10000);
  await expect.poll(()=>matchReads).toBeGreaterThan(reads);
  await expect(own.locator('.squad')).toContainText('Updated player');
- await expect(own.locator('details')).toHaveAttribute('open','');
+ await expect(own.locator('.squad')).toBeVisible();
  await page.getByRole('button',{name:'Merkur Spiel-Arena',exact:true}).click();
  await expect(own).toHaveCount(0);
  await page.getByRole('button',{name:'All venues',exact:true}).click();
- await expect(own.locator('details')).toHaveAttribute('open','');
- await own.locator('summary').click();
- await expect(own.locator('details')).not.toHaveAttribute('open','');
- const afterClose=matchReads;await page.clock.fastForward(10000);
- await expect.poll(()=>matchReads).toBeGreaterThan(afterClose);
- await expect(own.locator('details')).not.toHaveAttribute('open','');
+ await expect(own.locator('.squad')).toBeVisible();
 
  page.once('dialog',dialog=>dialog.dismiss());await own.getByRole('button',{name:'Delete match'}).click();expect(deletes).toBe(0);
  page.once('dialog',async dialog=>{expect(dialog.message()).toContain('all player entries');await dialog.accept();});

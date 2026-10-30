@@ -3,13 +3,7 @@
 /* Compact internal scheduling layout. */
 .workspace-intro{padding:24px 40px 20px}.workspace-intro h1{font-size:36px;letter-spacing:-1.4px;line-height:1.2;margin:0}.workspace-intro p{margin:10px 0 0;font-size:13px}#games{padding-top:10px;padding-bottom:32px}.section-head h2{font-size:22px;letter-spacing:-.5px;margin:0}.section-head p{margin:0}.rules-panel{margin:0 40px 32px;border:1px solid #dfe4d8;border-radius:8px}.rules-panel>summary{padding:18px 20px;font-size:13px}.rules-panel .details{padding:0 20px 20px}.details h3{font-size:20px;margin-top:12px}.workspace-intro~.notice{margin-bottom:20px}footer{padding-top:20px;padding-bottom:20px}details[open]>summary>span{transform:rotate(180deg)}@media(max-width:640px){.workspace-intro{padding:20px 22px}.workspace-intro h1{font-size:30px}#games{padding-top:8px}.section-head p{margin-top:10px}.toolbar{margin-top:18px}.rules-panel{margin:0 22px 24px}.rules-panel .details{gap:20px}.section-head h2{font-size:21px}}
 
-/* Make the squad disclosure clearly actionable on touch and desktop. */
-.match-card details[data-squad]>summary{margin:16px 0;padding:14px 16px;min-height:56px;align-items:center;gap:12px;border:1px solid #72916a;border-radius:7px;background:#e5eddd;color:#193d30;font-size:13px;font-weight:750;line-height:1.45;box-shadow:0 2px 0 #193d3012}
-.match-card details[data-squad]>summary::-webkit-details-marker{display:none}
-.match-card details[data-squad]>summary>span{display:grid;place-items:center;flex-shrink:0;width:28px;height:28px;border-radius:50%;background:#1b4837;color:white;font-size:18px;font-family:Arial,sans-serif}
-.match-card details[data-squad]>summary:hover{background:#d6e4cb;border-color:#365b32}
-.match-card details[data-squad]>summary:active{background:#cbdcbc;box-shadow:none}
-.match-card details[data-squad][open]>summary{background:#d6e4cb;border-color:#365b32}
+.squad-section{margin:18px 0}.squad-section h4{font-size:14px;font-weight:750;margin:0 0 12px;color:#193d30}.squad-section>p:not(.hint){font-size:12px}
 
 .cancellation-notice{margin-top:18px;padding:14px 16px;border:1px solid #d9b66a;border-left:4px solid #ad771a;border-radius:6px;background:#fff3d8;color:#634610;display:flex;flex-direction:column;gap:6px}
 .cancellation-notice>span{font-size:12px;font-weight:650;line-height:1.4}
