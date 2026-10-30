@@ -15,3 +15,5 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 @media(max-width:640px){.form-row{grid-template-columns:minmax(0,1fr);gap:0}dialog input,dialog select{font-size:16px}}
 @media(max-width:360px){header{padding:0 16px}.workspace-intro{margin-left:16px;margin-right:16px;padding:24px 20px}.workspace-intro h1{font-size:30px}#games{padding-left:16px;padding-right:16px}.rules-panel,.notice{margin-left:16px;margin-right:16px}.match-card{padding:18px}.filter{padding:10px 7px;font-size:9px}.venue-label{font-size:15px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.filters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:min(100%,440px)}.filter{font-size:12px;text-align:center}@media(max-width:700px){.filter{font-size:11px;padding:11px 8px}}

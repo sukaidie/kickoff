@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange} from '../src/rules.js';
+import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange,scheduleView} from '../src/rules.js';
 test('duration changes at the fifteenth player',()=>{assert.equal(duration(14),90);assert.equal(duration(15),120);assert.equal(duration(16),120);assert.equal(quote('Cosmo','2026-10-30','18:00',14),12000);assert.equal(quote('Cosmo','2026-10-30','18:00',15),16000);});
 test('Cosmo bands and partial hours',()=>{assert.equal(quote('Cosmo','2026-10-30','10:00',1),6000);assert.equal(quote('Cosmo','2026-10-30','13:30',1),8400);assert.equal(quote('Cosmo','2026-10-30','16:30',1),11200);assert.equal(quote('Cosmo','2026-10-30','18:00',16),16000);});
 test('weekends and NRW fixed and movable public holidays',()=>{for(const date of ['2026-04-03','2026-04-06','2026-05-14','2026-05-25','2026-06-04','2026-11-01','2026-12-25']){assert.equal(holiday(date),true,date);assert.equal(quote('Cosmo',date,'10:00',1),11400);}assert.equal(holiday('2026-10-31'),false);assert.equal(quote('Cosmo','2026-10-31','10:00',16),15200);});
@@ -17,3 +17,10 @@ test('display start and end times using live player count and venue timezone',()
 });
 
 test('Merkur stays free for every duration and late kick-offs',()=>{for(const count of [0,1,14,15,20]){assert.equal(quote('Merkur Spiel-Arena','2026-10-31','23:30',count),0);assert.deepEqual(shares(0,count),Array(count).fill(0));}});
+
+test('schedule defaults to future open games; history contains past and cancelled games in reverse order',()=>{
+ const now=Date.parse('2026-10-30T12:00:00Z');
+ const games=[{id:'later',starts_at:'2026-11-01T12:00:00Z'},{id:'old',starts_at:'2026-10-28T12:00:00Z'},{id:'cancelled',starts_at:'2026-11-02T12:00:00Z',cancelled:true},{id:'soon',starts_at:'2026-10-30T13:00:00Z'},{id:'starting',starts_at:'2026-10-30T12:00:00Z'}];
+ assert.deepEqual(scheduleView(games,'Upcoming matches',now).map(m=>m.id),['soon','later']);
+ assert.deepEqual(scheduleView(games,'Past matches',now).map(m=>m.id),['cancelled','starting','old']);assert.equal(games[0].id,'later');
+});

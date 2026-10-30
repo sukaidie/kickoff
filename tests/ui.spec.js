@@ -1,5 +1,5 @@
 import {test,expect} from '@playwright/test';
-test('configured site reports backend errors and remains responsive; form calculates quote',async({page})=>{const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://pikwbxrctsfgnqipuevz.supabase.co/**',route=>route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({msg:'Test backend unavailable',message:'Test backend unavailable'})}));await page.goto('/');await expect(page.getByRole('heading',{name:'Match schedule'})).toBeVisible();await expect(page.getByRole('status')).toContainText('Connection unavailable: Test backend unavailable');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('#new-top').click();await page.locator('#create-form').getByLabel('Match name').fill('Friday football');await page.locator('#create-form').getByLabel('Date',{exact:true}).fill('2027-01-08');await page.locator('#create-form').getByLabel('Kick-off time').fill('13:30');await expect(page.locator('#estimate')).toContainText('€84.00');await page.getByLabel('Your name',{exact:true}).first().fill('Alex');await page.getByRole('button',{name:'Create match & join'}).click();await expect(page.locator('#create-form .form-error')).toContainText('Test backend unavailable');await page.getByRole('button',{name:'Close',exact:true}).first().click();await page.getByRole('button',{name:'Merkur Spiel-Arena',exact:true}).click();await expect(page.getByRole('heading',{name:'No matches yet'})).toBeVisible();expect(errors).toEqual([]);});
+test('configured site reports backend errors and remains responsive; form calculates quote',async({page})=>{const errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('https://pikwbxrctsfgnqipuevz.supabase.co/**',route=>route.fulfill({status:400,contentType:'application/json',body:JSON.stringify({msg:'Test backend unavailable',message:'Test backend unavailable'})}));await page.goto('/');await expect(page.getByRole('heading',{name:'Match schedule'})).toBeVisible();await expect(page.getByRole('status')).toContainText('Connection unavailable: Test backend unavailable');expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.locator('#new-top').click();await page.locator('#create-form').getByLabel('Match name').fill('Friday football');await page.locator('#create-form').getByLabel('Date',{exact:true}).fill('2027-01-08');await page.locator('#create-form').getByLabel('Kick-off time').fill('13:30');await expect(page.locator('#estimate')).toContainText('€84.00');await page.getByLabel('Your name',{exact:true}).first().fill('Alex');await page.getByRole('button',{name:'Create match & join'}).click();await expect(page.locator('#create-form .form-error')).toContainText('Test backend unavailable');await page.getByRole('button',{name:'Close',exact:true}).first().click();await page.getByRole('button',{name:'Past matches',exact:true}).click();await expect(page.getByRole('heading',{name:'No past matches'})).toBeVisible();expect(errors).toEqual([]);});
 
 test('players and costs stay visible through polling and filtering; only organiser can delete',async({page})=>{
  await page.clock.install();
@@ -18,6 +18,10 @@ test('players and costs stay visible through polling and filtering; only organis
   await route.fulfill({status:200,contentType:'application/json',body:JSON.stringify(data)});
  });
  await page.goto('/');
+ await expect(page.getByRole('button',{name:'Upcoming matches',exact:true})).toHaveAttribute('aria-pressed','true');
+ await expect(page.getByRole('heading',{name:'Another organiser match',exact:true})).toBeVisible();
+ await expect(page.getByRole('heading',{name:'My test match',exact:true})).toHaveCount(0);
+ await page.getByRole('button',{name:'Past matches',exact:true}).click();
  const own=page.locator('.match-card').filter({hasText:'My test match'});
  const otherCard=page.locator('.match-card').filter({hasText:'Another organiser match'});
  await expect(own.getByRole('button',{name:'Delete match'})).toBeVisible();
@@ -31,15 +35,15 @@ test('players and costs stay visible through polling and filtering; only organis
  await expect.poll(()=>matchReads).toBeGreaterThan(reads);
  await expect(own.locator('.squad')).toContainText('Updated player');
  await expect(own.locator('.squad')).toBeVisible();
- await page.getByRole('button',{name:'Merkur Spiel-Arena',exact:true}).click();
+ await page.getByRole('button',{name:'Upcoming matches',exact:true}).click();
  await expect(own).toHaveCount(0);
- await page.getByRole('button',{name:'All venues',exact:true}).click();
+ await page.getByRole('button',{name:'Past matches',exact:true}).click();
  await expect(own.locator('.squad')).toBeVisible();
 
  page.once('dialog',dialog=>dialog.dismiss());await own.getByRole('button',{name:'Delete match'}).click();expect(deletes).toBe(0);
  page.once('dialog',async dialog=>{expect(dialog.message()).toContain('all player entries');await dialog.accept();});
  await own.getByRole('button',{name:'Delete match'}).click();
- await expect(own).toHaveCount(0);await expect(otherCard).toBeVisible();await expect(page.getByRole('status')).toContainText('Match deleted.');expect(deletes).toBe(1);
+ await expect(own).toHaveCount(0);await expect(otherCard).toHaveCount(0);await expect(page.getByRole('status')).toContainText('Match deleted.');expect(deletes).toBe(1);await page.getByRole('button',{name:'Upcoming matches',exact:true}).click();await expect(otherCard).toBeVisible();
 });
 
 test('Merkur accepts early and late kick-offs while Cosmo keeps its limits',async({page})=>{

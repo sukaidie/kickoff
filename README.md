@@ -76,3 +76,7 @@ Run `supabase/migrations/20261030_multiple_players.sql` in the Supabase SQL Edit
 Every signed-in anonymous visitor can **Add someone else** multiple times, even without joining personally. They can edit or remove their own primary registration and the extra entries they added; the host can manage everyone's entries. **Click to join / Leave match** still applies only to the user's own primary entry. Leaving does not remove other people they registered. One primary entry per browser identity per match remains enforced.
 
 Additional entries cannot impersonate a browser identity or transfer match ownership. Add/edit/remove are disabled for cancelled or started matches and recheck permissions in the database. All players count toward duration (15+ = 120 minutes), costs, and visible numbering. As with all anonymous identities, clearing browser storage loses management access.
+
+## Schedule views
+
+The homepage opens on **Upcoming matches**, showing uncancelled matches with a future kick-off, earliest first. **Past matches** contains started/past matches and cancelled matches, most recent scheduled date first. These replace venue filters and include both venues.

@@ -14,3 +14,9 @@ export function timeRange(startsAt,count) {
  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'});
  return `${time.format(start)}–${time.format(end)}${day.format(start)!==day.format(end)?' (+1 day)':''}`;
 }
+
+export function scheduleView(matches,view,now=Date.now()) {
+ const upcoming=m=>!m.cancelled&&Date.parse(m.starts_at)>now;
+ return matches.filter(m=>view==='Upcoming matches'?upcoming(m):!upcoming(m))
+  .sort((a,b)=>view==='Upcoming matches'?Date.parse(a.starts_at)-Date.parse(b.starts_at):Date.parse(b.starts_at)-Date.parse(a.starts_at));
+}
