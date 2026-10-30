@@ -47,6 +47,10 @@ test('schema: anonymous participants can join, but cannot modify others or cance
  assert.equal(updated.title,'Rescheduled');assert.equal(updated.owner_id,host);assert.equal(updated.starts_at.toISOString(),'2099-01-10T18:00:00.000Z');
  await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Bad time','Cosmo','2099-01-10','21:00']),/check constraint/);
  await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Past','Cosmo','2020-01-10','18:00']),/future/);
+ await db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Late Merkur','Merkur Spiel-Arena','2099-01-10','23:30']);
+ assert.equal((await db.query('select match_time from public.matches where id=$1',[id])).rows[0].match_time,'23:30:00');
+ const early=(await db.query("select public.create_match('Early Merkur','Merkur Spiel-Arena','2099-01-11','06:00','Host') as id")).rows[0].id;
+ await db.query('delete from public.matches where id=$1',[early]);
  const foreign=(await db.query("select public.create_match('Other match','Cosmo','2099-01-09','18:00','Host') as id")).rows[0].id;
  await assert.rejects(db.query('select public.host_remove_player($1,$2)',[foreign,guests[0].id]),/Player not found/);
  for(const p of guests)await db.query('select public.host_remove_player($1,$2)',[id,p.id]);
