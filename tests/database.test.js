@@ -27,6 +27,14 @@ test('schema: anonymous participants can join, but cannot modify others or cance
  await db.query('select public.cancel_match($1)',[id]);
  await db.exec(`set request.jwt.claim.sub='${guest}';`);
  await assert.rejects(db.query('select public.join_match($1,$2)',[id,'Sam']),/closed/);
+ await assert.rejects(db.query('delete from public.players'),/permission denied/);
+ assert.equal((await db.query('delete from public.matches where id=$1 returning id',[id])).rows.length,0);
+ await db.exec(`set request.jwt.claim.sub='${host}';`);
+ assert.equal((await db.query('delete from public.matches where id=$1 returning id',[id])).rows.length,1);
+ assert.equal((await db.query('select * from public.players')).rows.length,0);
+ await db.exec('reset role;');
+ await db.exec(await readFile(new URL('../supabase/migrations/20261030_owner_delete_matches.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20261030_owner_delete_matches.sql',import.meta.url),'utf8'));
  await db.exec('set role anon;');
  await assert.rejects(db.query('select * from public.players'),/permission denied/);
  } finally {await db.close();}

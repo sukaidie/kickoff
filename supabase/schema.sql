@@ -28,7 +28,9 @@ create policy "Read match schedule" on public.matches for select to authenticate
 create policy "Read player list" on public.players for select to authenticated using(true);
 revoke all on public.matches, public.players from anon, authenticated;
 grant select on public.matches, public.players to authenticated;
--- Writes only through narrowly scoped functions. No arbitrary table updates/deletes.
+create policy "Organisers delete own matches" on public.matches for delete to authenticated using (owner_id = (select auth.uid()));
+grant delete on public.matches to authenticated;
+-- Other writes only through narrowly scoped functions. No arbitrary table updates.
 create function public.create_match(p_title text,p_venue text,p_date date,p_time time,p_name text)
 returns uuid language plpgsql security definer set search_path = '' as $$
 declare mid uuid;

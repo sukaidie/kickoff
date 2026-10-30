@@ -31,7 +31,7 @@ Development and production both use the public project URL and publishable key i
 
 ### Access and privacy
 
-Authenticated anonymous visitors can read the schedule and public player names. All direct table writes are denied. Security-definer functions require `auth.uid()`, derive ownership from that identity, enforce one player per identity per match, validate names/venues/times, reject past or cancelled games, and permit cancellation only by the organiser. Match creation is atomic with the organiser's entry. Join/leave operations lock the match row to serialize with cancellation. Creation is limited to 20 matches per identity per day.
+Authenticated anonymous visitors can read the schedule and public player names. Direct table inserts and updates are denied. Only the match creator may delete their match through a row-level security policy; deletion also removes its player entries. Security-definer functions require `auth.uid()`, derive ownership from that identity, enforce one player per identity per match, validate names/venues/times, reject past or cancelled games, and permit cancellation only by the organiser. Match creation is atomic with the organiser's entry. Join/leave operations lock the match row to serialize with cancellation. Creation is limited to 20 matches per identity per day.
 
 Anonymous access is intentionally open, not identity verification. Clearing browser storage loses control of that identity's entries and created matches. New identities can bypass per-identity limits; monitor Supabase abuse and configure Auth rate limits before a broad launch. Names are public, so avoid sensitive information. Payments are amounts due, not payment collection or verified payment status.
 
@@ -50,3 +50,7 @@ Anonymous access is intentionally open, not identity verification. Clearing brow
 The `.github/workflows/pages.yml` workflow installs from the lockfile, tests, builds with `/kickoff/` as its base, and deploys the `dist` artifact on pushes to `main` or manual dispatch.
 
 Enable GitHub Pages in repository Settings → Pages, with **GitHub Actions** as the source. The workflow needs Pages write and OIDC permissions, and the default `github-pages` environment must permit `main`. GitHub API access may be separately restricted even when Git push works. Until a successful Pages workflow and HTTP request are verified, the expected URL `https://sukaidie.github.io/kickoff/` should not be assumed live.
+
+## Updating an existing project: delete matches
+
+Run `supabase/migrations/20261030_owner_delete_matches.sql` in the Supabase SQL Editor (safe to rerun). Do not rerun the initial schema. The **Delete match** button is available to the creator on upcoming, finished, and cancelled matches, with permanent-deletion confirmation. It does not cancel a venue booking. Use the same browser identity that created the test match; another anonymous identity cannot delete it.
