@@ -1,5 +1,5 @@
 export const money = cents => new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(cents/100);
-export const duration = count => count > 15 ? 120 : 90;
+export const duration = count => count >= 15 ? 120 : 90;
 function easter(y) { const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114; return new Date(Date.UTC(y,Math.floor(n/31)-1,n%31+1)); }
 export function holiday(date) {const y=+date.slice(0,4); if(['01-01','05-01','10-03','11-01','12-25','12-26'].includes(date.slice(5))) return true; return [-2,1,39,50,60].some(offset=>{const d=easter(y); d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10)===date;});}
 export function quote(venue,date,time,count) {if(venue!=='Cosmo')return null;const weekend=[0,6].includes(new Date(date+'T12:00:00Z').getUTCDay())||holiday(date);const start=Number(time.slice(0,2))*60+Number(time.slice(3,5));const end=start+duration(count);if(start<600||end>1320)throw new Error('Cosmo games must fit between 10:00 and 22:00, including a possible 120-minute game.');let cents=0;for(let m=start;m<end;m++)cents+=(weekend?7600:m<840?4000:m<1020?6400:8000)/60;return Math.round(cents);}
