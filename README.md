@@ -80,3 +80,15 @@ Additional entries cannot impersonate a browser identity or transfer match owner
 ## Schedule views
 
 The homepage opens on **Upcoming matches**, showing uncancelled matches with a future kick-off, earliest first. **Past matches** contains started/past matches and cancelled matches, most recent scheduled date first. These replace venue filters and include both venues.
+
+## Updating an existing project: completed Cosmo payment status
+
+Run `supabase/migrations/20261030_player_payments.sql` in the Supabase SQL Editor (transactional and safe to rerun). Do not rerun `schema.sql`. It adds an unpaid-by-default `paid` field plus the last update time and host identity; existing entries are preserved.
+
+After an uncancelled **Cosmo** match ends, each player row shows **Paid** or **Unpaid**. The actual end is kick-off plus 90 minutes, or 120 minutes with 15+ players. Everyone can view the status; only the match's host can change it using **Mark paid / Mark unpaid**. The database independently enforces venue, ownership, end time and player membership. No payment controls or statuses appear for Merkur, cancelled matches or games still in progress. Status is a manual record, not a payment processor confirmation; no funds are collected. Changing it never changes costs or attendance.
+
+### Completed test match
+
+After applying the migration and deploying, open `https://sukaidie.github.io/kickoff/?payment-demo=1` in the browser identity you want to act as host. Click **Create payment demo**. The restricted `create_payment_demo()` function inserts a clearly named **TEST · Cosmo payment status** match yesterday at 18:00 in Europe/Berlin, owned by the current browser identity, with three fictional entries and a mix of paid and unpaid statuses. It opens in **Past matches**.
+
+One demo is retained per identity. Repeated creation calls do not duplicate the match or reset payment edits. Use **Delete match** to remove it after testing. The demo tools only appear with the explicit `payment-demo` query parameter; normal homepage use never inserts test data. The current cloud machine cannot reach Supabase through its network policy, so the live fixture must be created via that browser entry after the migration; local mocked fixtures and embedded PostgreSQL checks are not evidence of insertion into the hosted project.
