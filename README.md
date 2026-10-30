@@ -37,7 +37,7 @@ Anonymous access is intentionally open, not identity verification. Clearing brow
 
 ## Rules
 
-- Venues: Cosmo and Merkur Spiel-Arena. No Merkur rate was supplied, so its total and player costs are **TBC**.
+- Venues: Cosmo and Merkur Spiel-Arena. Merkur matches are **Free**, with no venue fee or per-player payment.
 - 0–14 players: 90 minutes. 15+ players: 120 minutes. Leaving can reduce duration again.
 - Cosmo: weekdays 10:00–14:00 €40/h, 14:00–17:00 €64/h, 17:00–22:00 €80/h. Weekends and all NRW statewide public holidays: €76/h. Minute-by-minute calculation splits a booking across rate bands.
 - NRW holidays include New Year, Good Friday, Easter Monday, Labour Day, Ascension, Whit Monday, Corpus Christi, German Unity Day, All Saints, and both Christmas holidays.
