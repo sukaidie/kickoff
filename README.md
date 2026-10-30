@@ -17,7 +17,7 @@ npm run build
 
 `npm run test:e2e` runs Chromium UI checks at mobile and desktop sizes. The provided cloud environment has `/usr/bin/chromium`; on another machine install Chromium and update the executable path in `playwright.config.js`.
 
-Without Supabase settings the site displays an explicit setup notice. It does not silently store local matches or pretend data is shared.
+Local development without Supabase settings displays an explicit setup notice. Production uses the public project URL and publishable key in `src/public-config.js`; build-time environment variables override them. It does not silently store local matches or pretend data is shared.
 
 ## Required Supabase setup
 
@@ -27,7 +27,7 @@ Without Supabase settings the site displays an explicit setup notice. It does no
 4. In GitHub repository Settings → Secrets and variables → Actions → **Variables**, add the same two names. These are deliberately public browser configuration. Rerun the Pages workflow after setting or changing them.
 5. Validate with two browsers: create a future match, join from the other browser, verify both lists and cost shares update, verify only the organiser can cancel, then verify joining the cancelled match fails. Realtime updates have a ten-second polling fallback.
 
-**Current setup:** no Supabase project URL or public key was supplied. Hosted Supabase Auth, Realtime, and shared persistence therefore remain unverified. The SQL migration and access-control operations are tested against embedded PostgreSQL with a simulated `auth.uid()` and Supabase roles; this does not substitute for the hosted integration check.
+**Current setup:** the production project URL and public publishable key are configured. Hosted Supabase Auth, Realtime, and shared persistence remain unverified until the schema is installed and anonymous sign-in is enabled. The SQL migration and access-control operations are tested against embedded PostgreSQL with a simulated `auth.uid()` and Supabase roles; this does not substitute for the hosted integration check.
 
 ### Access and privacy
 

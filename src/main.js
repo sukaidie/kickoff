@@ -1,7 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 import {money,duration,quote,shares,voucherPercent,berlinInstant,holiday} from './rules.js';
 import './style.css';
-const url=import.meta.env.VITE_SUPABASE_URL,key=import.meta.env.VITE_SUPABASE_ANON_KEY;
+import { productionSupabase } from './public-config.js';
+const url=import.meta.env.VITE_SUPABASE_URL || (import.meta.env.PROD ? productionSupabase.url : undefined),key=import.meta.env.VITE_SUPABASE_ANON_KEY || (import.meta.env.PROD ? productionSupabase.publishableKey : undefined);
 const configured=Boolean(url&&key); const db=configured?createClient(url,key):null;
 let matches=[],players=[],user=null,filter='All venues',busy=false;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
