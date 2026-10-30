@@ -10,3 +10,7 @@
 .match-card details[data-squad]>summary:hover{background:#d6e4cb;border-color:#365b32}
 .match-card details[data-squad]>summary:active{background:#cbdcbc;box-shadow:none}
 .match-card details[data-squad][open]>summary{background:#d6e4cb;border-color:#365b32}
+
+.cancellation-notice{margin-top:18px;padding:14px 16px;border:1px solid #d9b66a;border-left:4px solid #ad771a;border-radius:6px;background:#fff3d8;color:#634610;display:flex;flex-direction:column;gap:6px}
+.cancellation-notice>span{font-size:12px;font-weight:650;line-height:1.4}
+.cancellation-notice>strong{font-size:17px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}
