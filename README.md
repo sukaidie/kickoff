@@ -54,3 +54,17 @@ Enable GitHub Pages in repository Settings → Pages, with **GitHub Actions** as
 ## Updating an existing project: delete matches
 
 Run `supabase/migrations/20261030_owner_delete_matches.sql` in the Supabase SQL Editor (safe to rerun). Do not rerun the initial schema. The **Delete match** button is available to the creator on upcoming, finished, and cancelled matches, with permanent-deletion confirmation. It does not cancel a venue booking. Use the same browser identity that created the test match; another anonymous identity cannot delete it.
+
+## Updating an existing project: host management
+
+Run `supabase/migrations/20261030_host_management.sql` in the Supabase SQL Editor. It is transactional, safe to rerun, and preserves current matches and players. Do not rerun the initial schema. New installations already include these capabilities in `schema.sql`.
+
+For upcoming, uncancelled matches the host can:
+
+- **Edit match**: change the title, venue, date and kick-off time. Duration, end time, costs and voucher eligibility recalculate.
+- **Add player**: create a named guest entry without requiring the guest's device.
+- **Edit / Remove** beside a player: rename an entry or remove it after confirmation.
+
+All four operations check `auth.uid()` against the match owner inside restricted database functions and lock the match row. They cannot change ownership, link a guest to another identity, manage players from another match, or modify closed matches. Existing participant self-join and leave continue to work. Removal is not a ban; the participant can join again while the match is open.
+
+Host-added entries have a null `user_id` and a **Guest** label. Only the host can manage these entries; typing the same name from another browser does not claim them. The host remains the organiser even if their own player entry is removed. Venue booking changes must be arranged separately. Host privileges still depend on retaining the original anonymous browser session.

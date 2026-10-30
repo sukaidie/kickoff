@@ -24,7 +24,44 @@ test('schema: anonymous participants can join, but cannot modify others or cance
  await db.exec(`set request.jwt.claim.sub='${host}';`);
  await assert.rejects(db.query("select public.create_match('Too late','Cosmo','2099-01-09','20:30','Alex')"),/check constraint/);
  await assert.rejects(db.query("select public.create_match('Past','Cosmo','2020-01-09','18:00','Alex')"),/future/);
+
+ // Guests cannot invoke any host management function, including spoofed match IDs.
+ await db.exec(`set request.jwt.claim.sub='${guest}';`);
+ const hostPlayer=(await db.query('select id from public.players where match_id=$1',[id])).rows[0].id;
+ for(const [sql,args] of [
+  ['select public.host_add_player($1,$2)',[id,'Unauthorised']],
+  ['select public.host_remove_player($1,$2)',[id,hostPlayer]],
+  ['select public.host_edit_player($1,$2,$3)',[id,hostPlayer,'Changed']],
+  ['select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Changed','Cosmo','2099-01-09','17:00']]
+ ])await assert.rejects(db.query(sql,args),/Only the organiser/);
+ await db.exec(`set request.jwt.claim.sub='${host}';`);
+ await db.query('select public.host_add_player($1,$2)',[id,'Guest one']);
+ await db.query('select public.host_add_player($1,$2)',[id,'Guest two']);
+ const guests=(await db.query('select * from public.players where match_id=$1 and user_id is null order by name',[id])).rows;
+ assert.equal(guests.length,2);
+ await assert.rejects(db.query('select public.host_add_player($1,$2)',[id,'   ']),/check constraint/);
+ await db.query('select public.host_edit_player($1,$2,$3)',[id,guests[0].id,'Renamed guest']);
+ assert.equal((await db.query('select name from public.players where id=$1',[guests[0].id])).rows[0].name,'Renamed guest');
+ await db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Rescheduled','Cosmo','2099-01-10','19:00']);
+ const updated=(await db.query('select * from public.matches where id=$1',[id])).rows[0];
+ assert.equal(updated.title,'Rescheduled');assert.equal(updated.owner_id,host);assert.equal(updated.starts_at.toISOString(),'2099-01-10T18:00:00.000Z');
+ await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Bad time','Cosmo','2099-01-10','21:00']),/check constraint/);
+ await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Past','Cosmo','2020-01-10','18:00']),/future/);
+ const foreign=(await db.query("select public.create_match('Other match','Cosmo','2099-01-09','18:00','Host') as id")).rows[0].id;
+ await assert.rejects(db.query('select public.host_remove_player($1,$2)',[foreign,guests[0].id]),/Player not found/);
+ for(const p of guests)await db.query('select public.host_remove_player($1,$2)',[id,p.id]);
+ await db.query('delete from public.matches where id=$1',[foreign]);
+ await db.exec('reset role;');
+ await db.exec('alter table public.players alter column user_id set not null;'); // Original deployed schema.
+ await db.exec(await readFile(new URL('../supabase/migrations/20261030_host_management.sql',import.meta.url),'utf8'));
+ await db.exec(await readFile(new URL('../supabase/migrations/20261030_host_management.sql',import.meta.url),'utf8'));
+ assert.equal((await db.query('select count(*)::int as n from public.players where match_id=$1',[id])).rows[0].n,1);
+ await db.exec(`set role authenticated; set request.jwt.claim.sub='${host}';`);
  await db.query('select public.cancel_match($1)',[id]);
+ await assert.rejects(db.query('select public.host_add_player($1,$2)',[id,'Closed guest']),/closed/);
+ await assert.rejects(db.query('select public.host_edit_player($1,$2,$3)',[id,hostPlayer,'Closed name']),/closed/);
+ await assert.rejects(db.query('select public.host_remove_player($1,$2)',[id,hostPlayer]),/closed/);
+ await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Closed','Cosmo','2099-01-09','18:00']),/closed/);
  await db.exec(`set request.jwt.claim.sub='${guest}';`);
  await assert.rejects(db.query('select public.join_match($1,$2)',[id,'Sam']),/closed/);
  await assert.rejects(db.query('delete from public.players'),/permission denied/);

@@ -8,3 +8,5 @@
 .cancellation-notice{margin-top:18px;padding:14px 16px;border:1px solid #d9b66a;border-left:4px solid #ad771a;border-radius:6px;background:#fff3d8;color:#634610;display:flex;flex-direction:column;gap:6px}
 .cancellation-notice>span{font-size:12px;font-weight:650;line-height:1.4}
 .cancellation-notice>strong{font-size:17px;font-weight:750;line-height:1.4;overflow-wrap:anywhere}
+
+.host-actions{display:flex;gap:8px}.host-actions .secondary{flex:1;padding:12px 10px;font-size:12px;justify-content:center}.player-controls{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}.player-controls>div{display:flex;gap:4px}.player-edit,.player-remove{padding:8px;border:1px solid #cfd9c5;border-radius:5px;background:#f1f5eb;color:#244833;font-size:11px;min-height:36px}.player-remove{color:#9d4328;border-color:#e6c8ba;background:#fff5ed}.squad li>span{min-width:0;flex-wrap:wrap}
