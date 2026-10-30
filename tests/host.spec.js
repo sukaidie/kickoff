@@ -6,7 +6,7 @@ test('host adds, renames, removes players and edits match details with live cost
  const token=Buffer.from(JSON.stringify({alg:'HS256',typ:'JWT'})).toString('base64url')+'.'+Buffer.from(JSON.stringify({sub:uid,role:'authenticated',exp:4102444800})).toString('base64url')+'.signature';
  await page.addInitScript(({user,token})=>localStorage.setItem('sb-pikwbxrctsfgnqipuevz-auth-token',JSON.stringify({access_token:token,refresh_token:'test-refresh',expires_at:4102444800,expires_in:86400,token_type:'bearer',user})),{user,token});
  let game={id:mid,owner_id:uid,title:'Host management',venue:'Cosmo',match_date:'2099-01-09',match_time:'18:00:00',starts_at:berlinInstant('2099-01-09','18:00'),cancelled:false};
- let team=Array.from({length:14},(_,i)=>({id:`player-${i}`,match_id:mid,user_id:i===0?uid:null,name:i===0?'Host':`Player ${i}`,created_at:`2026-10-30T12:00:${String(i).padStart(2,'0')}Z`}));
+ let team=Array.from({length:14},(_,i)=>({id:`player-${i}`,match_id:mid,user_id:i===0?uid:i===1?'33333333-3333-4333-8333-333333333333':null,name:i===0?'Host':`Player ${i}`,created_at:`2026-10-30T12:00:${String(i).padStart(2,'0')}Z`}));
  const other={...game,id:'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',owner_id:'22222222-2222-4222-8222-222222222222',title:'Other organiser'};
  await page.route('https://pikwbxrctsfgnqipuevz.supabase.co/**',async route=>{
   const req=route.request(),path=new URL(req.url()).pathname;let data=null,status=200;
@@ -33,6 +33,7 @@ test('host adds, renames, removes players and edits match details with live cost
  await expect(foreign.getByRole('button',{name:'Add player',exact:true})).toHaveCount(0);
  await expect(card.locator('.match-date')).toContainText('18:00–19:30');
  await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));
+ await expect(card.locator('.squad li small')).toHaveText(['Host',...Array(13).fill('Player')]);
  const before=await card.locator('.price').innerText();
  await card.getByRole('button',{name:'Add player',exact:true}).click();
  const pf=page.locator('#player-form');await pf.getByLabel('Player name').fill('New guest');await pf.getByRole('button',{name:'Save player'}).click();
