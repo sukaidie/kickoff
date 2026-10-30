@@ -236,5 +236,7 @@ begin
 end $$;
 revoke all on function public.set_player_confirmed(uuid,uuid,boolean) from public,anon;
 grant execute on function public.set_player_confirmed(uuid,uuid,boolean) to authenticated;
+-- New registrations default to confirmed; existing statuses are preserved.
+alter table public.players alter column confirmed set default true;
 alter publication supabase_realtime add table public.matches, public.players;
 commit;

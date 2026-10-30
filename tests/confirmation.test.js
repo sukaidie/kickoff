@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import {PGlite} from '@electric-sql/pglite';
-test('Merkur confirmation defaults false; only host, participant or registrant can update it',async()=>{
+test('existing confirmation statuses are preserved; new registrations default confirmed with ownership checks',async()=>{
  const db=new PGlite();try{
  await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;create publication supabase_realtime;`);
  const schema=await readFile(new URL('../supabase/schema.sql',import.meta.url),'utf8');await db.exec(schema.slice(0,schema.indexOf('-- Merkur confirmation'))+'commit;');
@@ -22,6 +22,9 @@ test('Merkur confirmation defaults false; only host, participant or registrant c
  await assert.rejects(db.query('select public.set_player_confirmed($1,$2,null)',[mid,friend.id]),/Choose confirmed/);
  const cosmo=(await db.query("select public.create_match('Paid venue','Cosmo','2099-01-09','18:00','Host') as id")).rows[0].id;await assert.rejects(db.query('select public.set_player_confirmed($1,$2,true)',[cosmo,friend.id]),/non-cancelled Merkur/);
  const second=(await db.query("select public.create_match('Other Merkur','Merkur Spiel-Arena','2099-01-10','09:00','Host') as id")).rows[0].id;await assert.rejects(db.query('select public.set_player_confirmed($1,$2,true)',[second,friend.id]),/Only the host/);
+ const defaults=await readFile(new URL('../supabase/migrations/20261030_confirmed_default.sql',import.meta.url),'utf8');await db.exec('reset role');await db.exec(defaults);await db.exec(defaults);await as(host);
+ await db.query('select public.add_player($1,$2)',[mid,'New confirmed player']);assert.equal((await db.query('select confirmed from public.players where match_id=$1 and name=$2',[mid,'New confirmed player'])).rows[0].confirmed,true);
+ assert.equal((await db.query('select confirmed from public.players where id=$1',[friend.id])).rows[0].confirmed,false);
  await db.query('select public.cancel_match($1)',[mid]);await assert.rejects(db.query('select public.set_player_confirmed($1,$2,true)',[mid,friend.id]),/non-cancelled Merkur/);
  await db.exec('reset role;set role anon;');await assert.rejects(db.query('select public.set_player_confirmed($1,$2,true)',[mid,friend.id]),/permission denied/);
  }finally{await db.close();}

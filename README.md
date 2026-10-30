@@ -104,3 +104,7 @@ Merkur lists use the heading **Players** with **Player / Status** columns. Every
 Run `supabase/migrations/20261030_merkur_confirmation.sql` in the Supabase SQL Editor. It is safe to rerun and preserves registrations. Existing and new entries default to `confirmed = false` (**Unconfirmed**). Confirmation is independent of Cosmo's `paid` state.
 
 Merkur player rows display plain **Confirmed / Unconfirmed** status text. **Edit confirmation status** opens a separate editor: hosts can choose any player, while participants and registrants can choose only their own primary entry or extra entries they submitted (`user_id` / `added_by`). The database repeats these checks, verifies the player belongs to the selected Merkur match, and records the last updater/time. Cancelled matches cannot be updated. An unrelated browser identity or a matching typed name does not grant access. Cosmo payment permissions and calculations are unchanged.
+
+## Default confirmation for new registrations
+
+Run `supabase/migrations/20261030_confirmed_default.sql` after the Merkur confirmation migration. New registrations now default to **Confirmed**. Existing records, including manually set **Unconfirmed** states, are preserved. Host and registrant editing permissions are unchanged.
