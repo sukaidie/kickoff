@@ -124,3 +124,11 @@ To rotate the password, use the SQL Editor to set `kickoff_private.admin_config.
 **Attendance ranking** shows each player's historical appearance count and rank. It counts non-cancelled matches only after their actual 90/120-minute end. Cosmo uses the final registered roster regardless of payment status; Merkur counts only confirmed entries. This is a roster-based count, not independent proof of physical attendance. Test fixtures whose titles start with `TEST ·` are excluded.
 
 Names are normalized for letter case, surrounding/repeated whitespace, and Unicode width. The same name counts once per match, including duplicate registrations; distinct people with the same normalized name are combined. Tied counts share rank. Removing a historical registration/match or changing a Merkur confirmation updates the ranking. History is fetched in pages to avoid the default single-response row limit. No new SQL or permissions are required.
+
+## Admin: transfer host
+
+After Admin setup, run `supabase/migrations/20261031_transfer_host.sql` in the Supabase SQL Editor (safe to rerun). In Admin mode, choose **Transfer host**, select a registered player, and confirm. The server validates the admin session and that the selected player belongs to this match. It atomically changes `matches.owner_id` and records the transfer in the private audit log. Ordinary hosts cannot transfer ownership.
+
+Only primary player entries with a real `user_id` are eligible. A host-added name with no linked browser identity cannot receive login permissions; that person must first join using their own browser. No permissions are silently given to the person who typed a guest's name.
+
+The current host appears at position 1 in every roster, followed by the other entries in stable signup order. A transfer preserves player IDs, registration timestamps, statuses, attendance totals, and existing cent-rounded cost allocations. The old host loses match-wide permissions but retains normal rights to their own registration and any players they added. Admin transfer is also available for historical/cancelled records; the normal restrictions on editing those records remain unchanged.

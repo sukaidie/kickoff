@@ -44,3 +44,7 @@ export function attendanceRanking(matches,players,now=Date.now()) {
  const sorted=[...totals.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'en'));
  return sorted.map((entry,i)=>({...entry,rank:i&&sorted[i-1].count===entry.count?sorted.findIndex(p=>p.count===entry.count)+1:i+1}));
 }
+
+export function orderSquad(players,ownerId) {
+ return [...players].sort((a,b)=>Number(b.user_id===ownerId)-Number(a.user_id===ownerId)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
+}

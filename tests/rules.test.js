@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange,scheduleView,paymentTrackingAvailable,attendanceRanking} from '../src/rules.js';
+import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange,scheduleView,paymentTrackingAvailable,attendanceRanking,orderSquad} from '../src/rules.js';
 test('duration changes at the fifteenth player',()=>{assert.equal(duration(14),90);assert.equal(duration(15),120);assert.equal(duration(16),120);assert.equal(quote('Cosmo','2026-10-30','18:00',14),12000);assert.equal(quote('Cosmo','2026-10-30','18:00',15),16000);});
 test('Cosmo bands and partial hours',()=>{assert.equal(quote('Cosmo','2026-10-30','10:00',1),6000);assert.equal(quote('Cosmo','2026-10-30','13:30',1),8400);assert.equal(quote('Cosmo','2026-10-30','16:30',1),11200);assert.equal(quote('Cosmo','2026-10-30','18:00',16),16000);});
 test('weekends and NRW fixed and movable public holidays',()=>{for(const date of ['2026-04-03','2026-04-06','2026-05-14','2026-05-25','2026-06-04','2026-11-01','2026-12-25']){assert.equal(holiday(date),true,date);assert.equal(quote('Cosmo',date,'10:00',1),11400);}assert.equal(holiday('2026-10-31'),false);assert.equal(quote('Cosmo','2026-10-31','10:00',16),15200);});
@@ -43,4 +43,9 @@ test('attendance ranking counts completed rosters once per name per match, filte
  for(let i=0;i<15;i++)players.push({match_id:'f',name:'In progress '+i});
  const result=attendanceRanking(matches,players,now);assert.deepEqual(result,[{name:'Alice',count:2,rank:1},{name:'Bob',count:1,rank:2},{name:'Charlie',count:1,rank:2}]);assert.deepEqual(attendanceRanking([],[],now),[]);
  assert.equal(attendanceRanking([{...past,id:'x'}],[{match_id:'x',name:'  Ａlice  Smith '},{match_id:'x',name:'alice   smith'}],now)[0].count,1);
+});
+
+test('current host appears first without mutating signup timestamps or input order',()=>{
+ const team=[{id:'a',user_id:'old',created_at:'2026-10-01T12:00:00Z'},{id:'b',user_id:null,created_at:'2026-10-01T12:01:00Z'},{id:'c',user_id:'new',created_at:'2026-10-01T12:02:00Z'}];
+ assert.deepEqual(orderSquad(team,'new').map(p=>p.id),['c','a','b']);assert.deepEqual(team.map(p=>p.id),['a','b','c']);assert.equal(team[2].created_at,'2026-10-01T12:02:00Z');
 });

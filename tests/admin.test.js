@@ -7,7 +7,7 @@ test('admin password is checked on server; tokens expire, bind to identity and a
  const db=new PGlite({extensions:{pgcrypto}});try{
  await db.exec(`create role anon;create role authenticated;create schema auth;create table auth.users(id uuid primary key);create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated;grant execute on function auth.uid() to authenticated;create publication supabase_realtime;`);
  await db.exec(await readFile(new URL('../supabase/schema.sql',import.meta.url),'utf8'));
- const migration=await readFile(new URL('../supabase/migrations/20261030_admin.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);
+ const migration=await readFile(new URL('../supabase/migrations/20261030_admin.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);const transferMigration=await readFile(new URL('../supabase/migrations/20261031_transfer_host.sql',import.meta.url),'utf8');await db.exec(transferMigration);await db.exec(transferMigration);
  const admin='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-8222-222222222222';await db.query('insert into auth.users values($1),($2)',[admin,other]);
  await db.query("update kickoff_private.admin_config set password_hash=extensions.crypt($1,extensions.gen_salt('bf',4))",['test-admin-password']);
  const as=async id=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
@@ -19,12 +19,21 @@ test('admin password is checked on server; tokens expire, bind to identity and a
  const mutate=async(action,data)=>(await db.query('select public.admin_mutate($1,$2,$3) as id',[session.token,action,data])).rows[0].id;
  assert.equal((await db.query('select public.admin_valid($1) as valid',[session.token])).rows[0].valid,true);
  await as(other);assert.equal((await db.query('select public.admin_valid($1) as valid',[session.token])).rows[0].valid,false);await assert.rejects(db.query('select public.admin_mutate($1,$2,$3)',[session.token,'delete_match',{match:foreign}]),/session expired/);await as(admin);
+ await db.query('select public.join_match($1,$2)',[foreign,'New host']);
+ const originalHost=(await db.query('select id from public.players where match_id=$1 and user_id=$2',[foreign,other])).rows[0].id;
+ const target=(await db.query('select id from public.players where match_id=$1 and user_id=$2',[foreign,admin])).rows[0].id;
+ await assert.rejects(db.query('select public.admin_transfer_host($1,$2,$3)',['forged',foreign,target]),/session expired/);
+ await db.query('select public.admin_transfer_host($1,$2,$3)',[session.token,foreign,target]);assert.equal((await db.query('select owner_id from public.matches where id=$1',[foreign])).rows[0].owner_id,admin);
+ await as(other);await assert.rejects(db.query('select public.cancel_match($1)',[foreign]),/Only the organiser/);await assert.rejects(db.query('select public.admin_transfer_host($1,$2,$3)',[session.token,foreign,originalHost]),/session expired/);
+ await as(admin);await db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[foreign,'New host can edit','Cosmo','2099-01-09','18:00']);await db.query('select public.admin_transfer_host($1,$2,$3)',[session.token,foreign,originalHost]);
+ assert.equal((await db.query('select count(*)::int as n from public.players where match_id=$1',[foreign])).rows[0].n,2);
  await mutate('edit_match',{match:foreign,title:'Edited past record',venue:'Cosmo',date:'2020-01-09',time:'18:00',cancelled:true,owner_id:admin});
  let m=(await db.query('select * from public.matches where id=$1',[foreign])).rows[0];assert.equal(m.owner_id,other);assert.equal(m.cancelled,true);assert.equal(m.title,'Edited past record');
  await mutate('edit_match',{match:foreign,title:m.title,venue:m.venue,date:'2020-01-09',time:'18:00',cancelled:false});
  const pid=await mutate('add_player',{match:foreign,name:'Added by Admin'});await mutate('edit_player',{match:foreign,player:pid,name:'Edited player'});await mutate('set_paid',{match:foreign,player:pid,paid:true});await mutate('set_confirmed',{match:foreign,player:pid,confirmed:false});
  let p=(await db.query('select * from public.players where id=$1',[pid])).rows[0];assert.equal(p.name,'Edited player');assert.equal(p.paid,true);assert.equal(p.confirmed,false);assert.equal(p.payment_updated_by,admin);
- const created=await mutate('create_match',{title:'Admin historical record',venue:'Merkur Spiel-Arena',date:'2020-01-10',time:'06:00',name:'Admin'});assert.ok(created);
+ await assert.rejects(db.query('select public.admin_transfer_host($1,$2,$3)',[session.token,foreign,pid]),/joined using their own browser/);
+ const created=await mutate('create_match',{title:'Admin historical record',venue:'Merkur Spiel-Arena',date:'2020-01-10',time:'06:00',name:'Admin'});assert.ok(created);await assert.rejects(db.query('select public.admin_transfer_host($1,$2,$3)',[session.token,created,target]),/Player not found/);
  await assert.rejects(mutate('remove_player',{match:created,player:pid}),/Player not found/);
  await assert.rejects(mutate('add_player',{match:foreign,name:' '}),/check constraint/);
  await assert.rejects(mutate('sql',{sql:'delete from auth.users'}),/Unsupported admin action/);
