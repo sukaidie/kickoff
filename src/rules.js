@@ -24,3 +24,23 @@ export function scheduleView(matches,view,now=Date.now()) {
 export function paymentTrackingAvailable(match) {
  return match.venue==='Cosmo'&&!match.cancelled;
 }
+
+export function attendanceRanking(matches,players,now=Date.now()) {
+ const byMatch=new Map();
+ for(const player of players){if(!byMatch.has(player.match_id))byMatch.set(player.match_id,[]);byMatch.get(player.match_id).push(player);}
+ const totals=new Map();
+ for(const match of matches){
+  const team=byMatch.get(match.id)||[];
+  if(match.cancelled||/^TEST\s*·/i.test(match.title||'')||Date.parse(match.starts_at)+duration(team.length)*60000>now)continue;
+  if(!Number.isFinite(Date.parse(match.starts_at)))continue;
+  const seen=new Set();
+  for(const player of team){
+   if(match.venue==='Merkur Spiel-Arena'&&!player.confirmed)continue;
+   const name=String(player.name||'').normalize('NFKC').trim().replace(/\s+/g,' '),key=name.toLocaleLowerCase('en');
+   if(!key||seen.has(key))continue;seen.add(key);
+   const entry=totals.get(key)||{name,count:0};entry.count++;totals.set(key,entry);
+  }
+ }
+ const sorted=[...totals.values()].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name,'en'));
+ return sorted.map((entry,i)=>({...entry,rank:i&&sorted[i-1].count===entry.count?sorted.findIndex(p=>p.count===entry.count)+1:i+1}));
+}

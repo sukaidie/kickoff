@@ -1,6 +1,6 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
-import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange,scheduleView,paymentTrackingAvailable} from '../src/rules.js';
+import {duration,holiday,quote,shares,voucherPercent,berlinInstant,timeRange,scheduleView,paymentTrackingAvailable,attendanceRanking} from '../src/rules.js';
 test('duration changes at the fifteenth player',()=>{assert.equal(duration(14),90);assert.equal(duration(15),120);assert.equal(duration(16),120);assert.equal(quote('Cosmo','2026-10-30','18:00',14),12000);assert.equal(quote('Cosmo','2026-10-30','18:00',15),16000);});
 test('Cosmo bands and partial hours',()=>{assert.equal(quote('Cosmo','2026-10-30','10:00',1),6000);assert.equal(quote('Cosmo','2026-10-30','13:30',1),8400);assert.equal(quote('Cosmo','2026-10-30','16:30',1),11200);assert.equal(quote('Cosmo','2026-10-30','18:00',16),16000);});
 test('weekends and NRW fixed and movable public holidays',()=>{for(const date of ['2026-04-03','2026-04-06','2026-05-14','2026-05-25','2026-06-04','2026-11-01','2026-12-25']){assert.equal(holiday(date),true,date);assert.equal(quote('Cosmo',date,'10:00',1),11400);}assert.equal(holiday('2026-10-31'),false);assert.equal(quote('Cosmo','2026-10-31','10:00',16),15200);});
@@ -34,4 +34,13 @@ test('Cosmo payment tracking is available before, during and after a game',()=>{
  assert.equal(paymentTrackingAvailable(m,15,now+120*60000),true);
  assert.equal(paymentTrackingAvailable({...m,venue:'Merkur Spiel-Arena'},14,now+200*60000),false);
  assert.equal(paymentTrackingAvailable({...m,cancelled:true},14,now+200*60000),false);
+});
+
+test('attendance ranking counts completed rosters once per name per match, filters Merkur and excludes tests',()=>{
+ const now=Date.parse('2026-10-31T12:00:00Z');const past={starts_at:'2026-10-29T17:00:00Z',venue:'Cosmo'};
+ const matches=[{...past,id:'a'},{...past,id:'b',venue:'Merkur Spiel-Arena'},{...past,id:'c',cancelled:true},{...past,id:'d',title:'TEST · Cosmo payment status'},{...past,id:'e',starts_at:'2026-10-31T13:00:00Z'},{...past,id:'f',starts_at:'2026-10-31T10:15:00Z'}];
+ const players=[{match_id:'a',name:' Alice '},{match_id:'a',name:'ALICE'},{match_id:'a',name:'Bob',paid:false},{match_id:'b',name:'alice',confirmed:true},{match_id:'b',name:'Bob',confirmed:false},{match_id:'b',name:'Charlie',confirmed:true},{match_id:'c',name:'Nobody'},{match_id:'d',name:'Test host'},{match_id:'e',name:'Future'}];
+ for(let i=0;i<15;i++)players.push({match_id:'f',name:'In progress '+i});
+ const result=attendanceRanking(matches,players,now);assert.deepEqual(result,[{name:'Alice',count:2,rank:1},{name:'Bob',count:1,rank:2},{name:'Charlie',count:1,rank:2}]);assert.deepEqual(attendanceRanking([],[],now),[]);
+ assert.equal(attendanceRanking([{...past,id:'x'}],[{match_id:'x',name:'  Ａlice  Smith '},{match_id:'x',name:'alice   smith'}],now)[0].count,1);
 });
