@@ -57,3 +57,5 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 #transfer-form>.primary{margin-top:18px;justify-content:center}
 
 .booking-status{font-size:13px;margin:8px 0 12px}#booking-form>.primary{margin-top:22px;justify-content:center}
+
+.venue-address{margin:12px 0 0;font-size:12px;line-height:1.7;overflow-wrap:anywhere}.venue-address>span{color:#728568;margin-right:6px}.venue-address a{color:#405b44;text-decoration:underline;text-underline-offset:3px}.venue-address a:focus-visible{outline:2px solid #234f3c;outline-offset:3px}
