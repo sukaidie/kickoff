@@ -58,11 +58,13 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 
 .booking-status{font-size:13px;margin:8px 0 12px}#booking-form>.primary{margin-top:22px;justify-content:center}
 
-/* Address link matches the venue heading and keeps the whole row tappable. */
-.venue-address{margin:12px 0 0;font-size:12px;line-height:1.6}
-.venue-address a{display:flex;align-items:center;gap:10px;min-height:44px;padding:9px 11px;background:#f4f7f0;border:1px solid #e3ebdc;border-radius:10px;color:#52674b;text-decoration:none;transition:background .15s,border-color .15s}
-.address-pin{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:8px;background:#e8efdf;color:#527345}
-.address-text{flex:1;min-width:0;overflow-wrap:anywhere;font-weight:500}
-.address-arrow{flex-shrink:0;color:#7a8e70}
-.venue-address a:hover{background:#eaf1e3;border-color:#bdcfaf;color:#234f3c}
-.venue-address a:focus-visible{outline:2px solid #234f3c;outline-offset:3px}
+/* Compact location row beneath the match date and time. */
+.venue-address{margin:3px 0 0;font-size:12px;line-height:1.6}
+.venue-address a{display:inline-flex;align-items:center;gap:7px;max-width:100%;min-height:36px;padding:4px 0;color:#62765a;text-decoration:none}
+.address-pin{display:flex;align-items:center;flex:0 0 17px;color:#6e865f}
+.address-text{min-width:0;overflow-wrap:anywhere;font-weight:500}
+.address-arrow{flex-shrink:0;color:#8a9b80}
+.venue-address a:hover{color:#234f3c}
+.venue-address a:hover .address-text{text-decoration:underline;text-underline-offset:3px}
+.venue-address a:focus-visible{outline:2px solid #234f3c;outline-offset:3px;border-radius:3px}
+@media(max-width:700px){.venue-address{font-size:11px}.venue-address a{min-height:44px;gap:6px}.address-arrow{width:12px;height:12px}}
