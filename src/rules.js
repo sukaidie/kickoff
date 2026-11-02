@@ -48,3 +48,13 @@ export function attendanceRanking(matches,players,now=Date.now()) {
 export function orderSquad(players,ownerId) {
  return [...players].sort((a,b)=>Number(b.user_id===ownerId)-Number(a.user_id===ownerId)||a.created_at.localeCompare(b.created_at)||a.id.localeCompare(b.id));
 }
+
+// payment_due preserves legacy historical records. Before migration, infer only
+// upcoming, explicitly unbooked matches; never discard a recorded payment.
+export function paymentDue(match,player,now=Date.now()) {
+ if(player.paid||match.booked===true)return true;
+ return player.payment_due ?? !(match.booked===false&&!match.cancelled&&Date.parse(match.starts_at)>now);
+}
+export function paymentStatus(match,player,now=Date.now()) {
+ return player.paid?'Paid':paymentDue(match,player,now)?'Unpaid':'Not due yet';
+}
