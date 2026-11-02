@@ -132,3 +132,9 @@ After Admin setup, run `supabase/migrations/20261031_transfer_host.sql` in the S
 Only primary player entries with a real `user_id` are eligible. A host-added name with no linked browser identity cannot receive login permissions; that person must first join using their own browser. No permissions are silently given to the person who typed a guest's name.
 
 The current host appears at position 1 in every roster, followed by the other entries in stable signup order. A transfer preserves player IDs, registration timestamps, statuses, attendance totals, and existing cent-rounded cost allocations. The old host loses match-wide permissions but retains normal rights to their own registration and any players they added. Admin transfer is also available for historical/cancelled records; the normal restrictions on editing those records remain unchanged.
+
+## Cosmo pitch booking status
+
+Apply `supabase/migrations/20261102_cosmo_booking.sql` to existing projects. New installations include it in `schema.sql`. If Admin mode is installed, also apply `supabase/migrations/20261102_admin_cosmo_booking.sql` after the booking and Admin migrations. Both migrations are transactional and safe to rerun.
+
+Every Cosmo card, including historical and cancelled records, displays **Pitch booking: Booked / Not booked**. Existing and new matches default to **Not booked**. The host or an authenticated Admin can use **Edit booking status** to update this manual record; other visitors can only read it. Database functions enforce ownership/Admin session and Cosmo venue independently of the UI. The optional Admin function records changes in the private audit trail. No booking status appears for Merkur. This does not reserve or cancel a pitch, change match cancellation, attendance, or payment status. Arrange venue changes separately.
