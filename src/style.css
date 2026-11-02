@@ -68,3 +68,12 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 .venue-address a:hover .address-text{text-decoration:underline;text-underline-offset:3px}
 .venue-address a:focus-visible{outline:2px solid #234f3c;outline-offset:3px;border-radius:3px}
 @media(max-width:700px){.venue-address{font-size:11px}.venue-address a{min-height:44px;gap:6px}.address-arrow{width:12px;height:12px}}
+
+.squad-disclosure{border-top:1px solid #e3ebdc;border-bottom:1px solid #e3ebdc;padding:0}
+.squad-disclosure>summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:48px;padding:12px 0;cursor:pointer;list-style:none;color:#405b44;font-size:13px;font-weight:650}
+.squad-disclosure>summary::-webkit-details-marker{display:none}
+.squad-count{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:#edf2e7;color:#688256;font-size:11px}
+.squad-disclosure>summary>svg{flex-shrink:0;transition:transform .15s}
+.squad-disclosure[open]>summary>svg{transform:rotate(180deg)}
+.squad-disclosure>summary:focus-visible{outline:2px solid #234f3c;outline-offset:3px;border-radius:3px}
+.squad-disclosure[open]>.hint{margin-bottom:14px}
