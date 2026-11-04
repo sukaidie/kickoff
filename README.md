@@ -144,3 +144,9 @@ Every Cosmo card, including historical and cancelled records, displays **Pitch b
 Apply `supabase/migrations/20261102_payment_due.sql` after the booking migration. It is transactional and safe to rerun; no separate Admin migration is needed. Existing unpaid members of upcoming, uncancelled, unbooked Cosmo matches become **Not due yet**. Existing **Paid**, booked, historical and Merkur records are preserved.
 
 New registrations (including extra guests and Admin additions) automatically use the current booking state: **Not due yet** before booking, **Unpaid** after booking. Marking the pitch **Booked** changes all Not due yet entries to Unpaid; Paid entries stay Paid. Reverting to Not booked changes unpaid entries back to Not due yet. Existing host/Admin payment permissions are unchanged. The editor's unpaid option reads Not due yet while no payment is due; hosts can still record or undo a payment. Database triggers cover both host and Admin booking paths. Manual paid flags and payment audit timestamps are preserved during automatic booking transitions. No payment is collected.
+
+## Cosmo pitch number
+
+Apply `supabase/migrations/20261104_cosmo_pitch.sql` after the booking migration; new installs include it in `schema.sql`. If Admin mode is installed, also apply `supabase/migrations/20261104_admin_cosmo_pitch.sql`. Both are transactional and safe to rerun.
+
+Once a Cosmo match is Booked, the host can use **Select pitch / Edit pitch** to choose **Soccer 1–6** or clear the assignment. Everyone sees the selected pitch beside Booked. Admins can also edit using their validated session. Database functions independently enforce ownership/session, venue, booked status and the 1–6 range. Reverting to Not booked or changing venue clears the assignment. Existing bookings remain unassigned until a host chooses; no external reservation is made.

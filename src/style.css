@@ -81,3 +81,7 @@ dialog{border:1px solid #d4e0cc;border-radius:18px;padding:30px;max-width:510px;
 @media(max-width:700px){.match-date{font-size:12px;gap:6px}.schedule-zone{font-size:9px}.schedule-line{gap:8px}}
 
 .is-not-due{color:#71816a}
+
+.booking-status{display:flex;flex-wrap:wrap;align-items:center;gap:5px}
+.pitch-label{display:inline-flex;align-items:center;gap:6px;margin-left:5px;padding:4px 8px;border:1px solid #d9e5cf;border-radius:6px;background:#f0f5eb;color:#405b44;font-size:11px;font-weight:650;white-space:nowrap}
+#pitch-form>.primary{margin-top:22px;justify-content:center}
