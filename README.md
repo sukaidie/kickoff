@@ -150,3 +150,9 @@ New registrations (including extra guests and Admin additions) automatically use
 Apply `supabase/migrations/20261104_cosmo_pitch.sql` after the booking migration; new installs include it in `schema.sql`. If Admin mode is installed, also apply `supabase/migrations/20261104_admin_cosmo_pitch.sql`. Both are transactional and safe to rerun.
 
 Once a Cosmo match is Booked, the host can use **Select pitch / Edit pitch** to choose **Soccer 1–6** or clear the assignment. Everyone sees the selected pitch beside Booked. Admins can also edit using their validated session. Database functions independently enforce ownership/session, venue, booked status and the 1–6 range. Reverting to Not booked or changing venue clears the assignment. Existing bookings remain unassigned until a host chooses; no external reservation is made.
+
+## Automatically record the host as Paid on booking
+
+Apply `supabase/migrations/20261104_booked_host_paid.sql` after the booking-aware payment migration. It only replaces the existing trigger function; it does not update current matches or player records. New installs include it in `schema.sql`.
+
+When a Cosmo match changes from Not booked to Booked, its current host's primary registration (`players.user_id = matches.owner_id`) automatically becomes Paid. Both host and Admin booking operations are covered, while other members follow the usual Not due yet → Unpaid transition and existing Paid entries are preserved. The updater identity and time are recorded only when the host was not already Paid. Re-saving an already Booked match does not override a manual payment edit. Undoing booking does not undo Paid. If the host has no registration, no player is created or guest reassigned. This is a manual scheduling convention, not confirmation from a payment processor.

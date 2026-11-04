@@ -41,5 +41,21 @@ test('booking transitions synchronize registrations and preserve paid and histor
  await db.query('select public.admin_set_match_booked($1,$2,true)',[session.token,mid]);assert.ok((await roster()).every(p=>p.payment_due));
  await db.query('select public.admin_mutate($1,$2,$3)',[session.token,'set_paid',{match:mid,player:joined,paid:true}]);assert.equal((await roster()).find(p=>p.name==='Joined').paid,true);
  await db.exec('reset role');await db.exec(migration);assert.equal((await roster()).find(p=>p.name==='Joined').paid,true);assert.ok((await roster()).every(p=>p.payment_due));
+
+ // Install the new behavior over an already booked match: no backfill.
+ const hostMigration=await readFile(new URL('../supabase/migrations/20261104_booked_host_paid.sql',import.meta.url),'utf8');
+ const before=await roster();await db.exec(hostMigration);await db.exec(hostMigration);assert.deepEqual(await roster(),before);
+ await as(host);await db.query('select public.set_player_paid($1,$2,false)',[mid,joined]);
+ await db.query('select public.set_match_booked($1,false)',[mid]);await db.query('select public.set_match_booked($1,true)',[mid]);
+ rows=await roster();let h=rows.find(p=>p.name==='Host');assert.equal(h.paid,true);assert.equal(h.payment_due,true);assert.equal(h.payment_updated_by,host);assert.ok(h.payment_updated_at);
+ assert.equal(rows.find(p=>p.name==='Joined').paid,false);assert.equal(rows.find(p=>p.name==='Extra').paid,false);assert.equal(rows.find(p=>p.name==='Paid guest').paid,true);
+ const hostId=(await db.query('select id from public.players where match_id=$1 and user_id=$2',[mid,host])).rows[0].id;
+ // Re-saving Booked respects host manual overrides; a new booking transition marks Paid again.
+ await db.query('select public.set_player_paid($1,$2,false)',[mid,hostId]);await db.query('select public.set_match_booked($1,true)',[mid]);assert.equal((await roster()).find(p=>p.name==='Host').paid,false);
+ await as(guest);await db.query('select public.admin_set_match_booked($1,$2,false)',[session.token,mid]);await db.query('select public.admin_set_match_booked($1,$2,true)',[session.token,mid]);
+ h=(await roster()).find(p=>p.name==='Host');assert.equal(h.paid,true);assert.equal(h.payment_updated_by,guest);assert.equal((await roster()).find(p=>p.name==='Joined').paid,false);
+ await db.query('select public.admin_set_match_booked($1,$2,false)',[session.token,mid]);assert.equal((await roster()).find(p=>p.name==='Host').paid,true);
+ // No synthetic registration is created if the organiser removed their own entry.
+ await as(host);await db.query('select public.remove_player($1,$2)',[mid,hostId]);const count=(await roster()).length;await db.query('select public.set_match_booked($1,true)',[mid]);assert.equal((await roster()).length,count);assert.ok(!(await roster()).some(p=>p.name==='Host'));
  }finally{await db.close();}
 });
