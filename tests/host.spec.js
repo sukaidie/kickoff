@@ -38,10 +38,10 @@ test('host adds, renames, removes players and edits match details with live cost
  await expect(card.locator('.price')).toBeVisible();
  const before=await card.locator('.price').innerText();
  await card.getByRole('button',{name:'Add someone else',exact:true}).click();
- const pf=page.locator('#player-form');await pf.getByLabel('Player name').fill('New guest');await pf.getByRole('button',{name:'Save player'}).click();
+ const pf=page.locator('#player-form');await pf.getByLabel('Player name').fill('new guest');await expect(pf.getByLabel('Player name')).toHaveValue('New guest');await pf.getByRole('button',{name:'Save player'}).click();
  await expect(card.locator('.facts')).toContainText('15 players');await expect(page.locator('#registration-count')).toHaveText('15');await expect(card.locator('.player-number')).toHaveText(Array.from({length:15},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–20:00');
  await expect(card.locator('.price')).not.toHaveText(before);
- await card.getByRole('button',{name:'Edit New guest',exact:true}).click();await pf.getByLabel('Player name').fill('Renamed guest');await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.squad')).toContainText('Renamed guest');
+ await card.getByRole('button',{name:'Edit New guest',exact:true}).click();await pf.getByLabel('Player name').fill('existing lowercase');await expect(pf.getByLabel('Player name')).toHaveValue('existing lowercase');await pf.getByLabel('Player name').fill('Renamed guest');await pf.getByRole('button',{name:'Save player'}).click();await expect(card.locator('.squad')).toContainText('Renamed guest');
  page.once('dialog',d=>d.accept());await card.getByRole('button',{name:'Remove Renamed guest',exact:true}).click();await expect(card.locator('.facts')).toContainText('14 players');await expect(card.locator('.player-number')).toHaveText(Array.from({length:14},(_,i)=>String(i+1)));await expect(card.locator('.match-date')).toContainText('18:00–19:30');
  await card.getByRole('button',{name:'Edit match',exact:true}).click();const mf=page.locator('#edit-match-form');await expect(mf.getByLabel('Match name')).toHaveValue('Host management');expect(await page.locator('#edit-match-dialog').evaluate(d=>d.scrollWidth<=d.clientWidth)).toBe(true);
  await mf.getByLabel('Match name').fill('Rejected');await mf.getByRole('button',{name:'Save changes'}).click();await expect(mf.locator('.form-error')).toContainText('Update rejected for testing');await expect(mf).toBeVisible();
