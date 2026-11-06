@@ -156,3 +156,15 @@ Once a Cosmo match is Booked, the host can use **Select pitch / Edit pitch** to 
 Apply `supabase/migrations/20261104_booked_host_paid.sql` after the booking-aware payment migration. It only replaces the existing trigger function; it does not update current matches or player records. New installs include it in `schema.sql`.
 
 When a Cosmo match changes from Not booked to Booked, its current host's primary registration (`players.user_id = matches.owner_id`) automatically becomes Paid. Both host and Admin booking operations are covered, while other members follow the usual Not due yet → Unpaid transition and existing Paid entries are preserved. The updater identity and time are recorded only when the host was not already Paid. Re-saving an already Booked match does not override a manual payment edit. Undoing booking does not undo Paid. If the host has no registration, no player is created or guest reassigned. This is a manual scheduling convention, not confirmation from a payment processor.
+
+## Automatic cancellation at kick-off
+
+Apply `supabase/migrations/20261106_auto_cancel_underfilled.sql`, then `supabase/migrations/20261106_auto_cancel_schedule.sql` as the database owner. The second migration requires Supabase Cron (`pg_cron`); enable Cron in Supabase if unavailable, then retry. New installations include the worker in `schema.sql` but still need the scheduling migration. Both migrations are safe to rerun and leave unrelated Cron jobs intact.
+
+For both venues, a database Cron worker runs every minute, checks a match once at/after kick-off, and cancels it if fewer than **10 total player entries** are registered. The host and guest entries count; Merkur Unconfirmed entries also count, and Cosmo payment status is irrelevant. Exactly 10 is sufficient. Actual execution can occur up to about a minute after kick-off under normal scheduling; delayed or failed Cron runs delay cancellation. The site does not need to be open. The worker records the check time and count, and cards explain automatic cancellation. The schedule uses `starts_at` (Europe/Berlin converted to an instant), including DST.
+
+Installation enrolls only upcoming, uncancelled matches and does not cancel history. New future matches are enrolled automatically. Each match is checked once: subsequent historical player edits do not trigger another cancellation. Rescheduling into the future enrolls a new check and clears old check metadata. Admin restoration of an already-started match is respected; restoration of a future match schedules its check. Registrations and the worker serialize on the match row, with locked matches retried on later runs. Browser roles cannot invoke the worker or directly update match status.
+
+This only cancels the match on this site. It does **not** cancel a Cosmo venue reservation, issue vouchers, refund payments or send messages. Existing Booked, pitch and Paid records are preserved.
+
+Verify the named `kickoff-cancel-underfilled` job is active in `cron.job` and check its `cron.job_run_details` for successful runs using the queries in the scheduling migration. Applying only the worker SQL does not enable background execution.
