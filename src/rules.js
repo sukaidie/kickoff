@@ -58,3 +58,7 @@ export function paymentDue(match,player,now=Date.now()) {
 export function paymentStatus(match,player,now=Date.now()) {
  return player.paid?'Paid':paymentDue(match,player,now)?'Unpaid':'Not due yet';
 }
+
+export function registrationNameKey(name) {
+ return String(name??'').normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase();
+}

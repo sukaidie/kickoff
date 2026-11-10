@@ -168,3 +168,11 @@ Installation enrolls only upcoming, uncancelled matches and does not cancel hist
 This only cancels the match on this site. It does **not** cancel a Cosmo venue reservation, issue vouchers, refund payments or send messages. Existing Booked, pitch and Paid records are preserved.
 
 Verify the named `kickoff-cancel-underfilled` job is active in `cron.job` and check its `cron.job_run_details` for successful runs using the queries in the scheduling migration. Applying only the worker SQL does not enable background execution.
+
+## Prevent duplicate names within a match
+
+Apply `supabase/migrations/20261110_duplicate_registration_names.sql` in the Supabase SQL Editor. It is safe to rerun, preserves all existing records (including old duplicates), and is included in `schema.sql` for new installations.
+
+Joining or adding someone else with an already registered name in the same match shows **This name is already registered.** and creates no entry. Matching ignores case, surrounding/repeated whitespace and Unicode width (NFKC). Different matches can use the same name. Rename operations cannot introduce duplicates; unchanged existing names remain editable, and payment/confirmation changes do not affect the check. Use a distinct identifying name for different people with the same name. Names grant no management permissions.
+
+The page checks its loaded roster for immediate feedback. A database trigger also validates self-joins, guest entries, host edits and Admin operations, locking the match row to serialize concurrent registrations. The non-unique lookup index permits legacy duplicates; it is not a cleanup or merge. Install the SQL to enforce the check across browsers and stale pages.
