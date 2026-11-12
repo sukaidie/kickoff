@@ -176,3 +176,9 @@ Apply `supabase/migrations/20261110_duplicate_registration_names.sql` in the Sup
 Joining or adding someone else with an already registered name in the same match shows **This name is already registered.** and creates no entry. Matching ignores case, surrounding/repeated whitespace and Unicode width (NFKC). Different matches can use the same name. Rename operations cannot introduce duplicates; unchanged existing names remain editable, and payment/confirmation changes do not affect the check. Use a distinct identifying name for different people with the same name. Names grant no management permissions.
 
 The page checks its loaded roster for immediate feedback. A database trigger also validates self-joins, guest entries, host edits and Admin operations, locking the match row to serialize concurrent registrations. The non-unique lookup index permits legacy duplicates; it is not a cleanup or merge. Install the SQL to enforce the check across browsers and stale pages.
+
+## Updating an existing project: add players to past matches
+
+Run `supabase/migrations/20261112_past_host_add_players.sql` in the Supabase SQL Editor (transactional and safe to rerun). New installations include this in `schema.sql`.
+
+In **Past matches**, the host can use **Add someone else** for started or finished, uncancelled matches. Other visitors can only add players before kick-off. Cancelled matches remain closed to host additions. Guest ownership, name validation, payment defaults, and duplicate-name checks still apply. Adding a player updates attendance, duration, and cost shares as usual.
