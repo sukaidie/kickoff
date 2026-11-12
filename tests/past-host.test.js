@@ -12,7 +12,7 @@ test('only host may add to past games; migration preserves validation and cancel
  await db.query('insert into auth.users values($1),($2)',[host,other]);
  const as=async id=>{await db.exec('reset role');await db.query("select set_config('request.jwt.claim.sub',$1,false)",[id]);await db.exec('set role authenticated');};
  await as(host);const mid=(await db.query("select public.create_match('Past game','Cosmo','2099-01-09','18:00','Host') as id")).rows[0].id;
- await db.exec('reset role');await db.query("update public.matches set starts_at=now()-interval '1 day' where id=$1",[mid]);
+ await db.exec('reset role');await db.query("update public.matches set match_date='2020-01-09' where id=$1",[mid]);
  const migration=await readFile(new URL('../supabase/migrations/20261112_past_host_add_players.sql',import.meta.url),'utf8');await db.exec(migration);await db.exec(migration);
  await as(other);await assert.rejects(db.query('select public.add_player($1,$2)',[mid,'Visitor guest']),/closed/);await assert.rejects(db.query('select public.host_add_player($1,$2)',[mid,'Legacy guest']),/Only the organiser/);
  await as(host);await db.query('select public.add_player($1,$2)',[mid,'Late guest']);await db.query('select public.host_add_player($1,$2)',[mid,'Legacy guest']);
