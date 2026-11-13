@@ -41,7 +41,7 @@ Anonymous access is intentionally open, not identity verification. Clearing brow
 - 0–14 players: 90 minutes. 15+ players: 120 minutes. Leaving can reduce duration again.
 - Cosmo: weekdays 10:00–14:00 €40/h, 14:00–17:00 €64/h, 17:00–22:00 €80/h. Weekends and all NRW statewide public holidays: €76/h. Minute-by-minute calculation splits a booking across rate bands.
 - NRW holidays include New Year, Good Friday, Easter Monday, Labour Day, Ascension, Whit Monday, Corpus Christi, German Unity Day, All Saints, and both Christmas holidays.
-- New Cosmo kick-offs must be between 10:00 and 20:00 to accommodate an automatic two-hour game before 22:00. Dates are interpreted in Europe/Berlin, independently of the visitor's timezone.
+- Cosmo hours: Mon–Thu 10:00–23:00, Fri 10:00–01:00 next day, Sat 09:00–01:00 next day, Sun 09:00–22:00. Kick-offs reserve 120 minutes before closing; opening hours follow the match weekday. Weekday costs extending past the published 22:00 rate band are TBC. Dates are interpreted in Europe/Berlin, independently of the visitor's timezone.
 - Cost shares sum exactly to the total, with any extra cents assigned by stable join order. The headline displays the maximum individual share when rounding differs.
 - Cancellation: more than 48 hours → 100% voucher; 24 through 48 hours inclusive → 50%; less than 24 hours → none. Exactly 48 hours is treated as the 50% band. Estimates refer to the match total. Venue bookings, cancellation requests, voucher issuance, and payments happen outside this site.
 
@@ -182,3 +182,7 @@ The page checks its loaded roster for immediate feedback. A database trigger als
 Run `supabase/migrations/20261112_past_host_add_players.sql` in the Supabase SQL Editor (transactional and safe to rerun). New installations include this in `schema.sql`.
 
 In **Past matches**, the host can use **Add someone else** for started or finished, uncancelled matches. Other visitors can only add players before kick-off. Cancelled matches remain closed to host additions. Guest ownership, name validation, payment defaults, and duplicate-name checks still apply. Adding a player updates attendance, duration, and cost shares as usual.
+
+## Updated Cosmo opening hours
+
+Apply `supabase/migrations/20261113_cosmo_opening_hours.sql` to existing projects. It replaces the fixed 10:00–20:00 kick-off constraint with weekday-specific limits, including Saturday and Sunday 09:00 starts. Run it before using the updated frontend.
