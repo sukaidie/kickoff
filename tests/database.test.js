@@ -22,7 +22,7 @@ test('schema: anonymous participants can join, but cannot modify others or cance
  await db.query('select public.leave_match($1)',[id]);
  assert.equal((await db.query('select name from public.players')).rows[0].name,'Alex');
  await db.exec(`set request.jwt.claim.sub='${host}';`);
- await assert.rejects(db.query("select public.create_match('Too late','Cosmo','2099-01-09','20:30','Alex')"),/check constraint/);
+ await assert.rejects(db.query("select public.create_match('Too late','Cosmo','2099-01-09','23:01','Alex')"),/check constraint/);
  await assert.rejects(db.query("select public.create_match('Past','Cosmo','2020-01-09','18:00','Alex')"),/future/);
 
  // Guests cannot invoke any host management function, including spoofed match IDs.
@@ -45,7 +45,7 @@ test('schema: anonymous participants can join, but cannot modify others or cance
  await db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Rescheduled','Cosmo','2099-01-10','19:00']);
  const updated=(await db.query('select * from public.matches where id=$1',[id])).rows[0];
  assert.equal(updated.title,'Rescheduled');assert.equal(updated.owner_id,host);assert.equal(updated.starts_at.toISOString(),'2099-01-10T18:00:00.000Z');
- await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Bad time','Cosmo','2099-01-10','21:00']),/check constraint/);
+ await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Bad time','Cosmo','2099-01-10','23:01']),/check constraint/);
  await assert.rejects(db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Past','Cosmo','2020-01-10','18:00']),/future/);
  await db.query('select public.host_edit_match($1,$2,$3,$4,$5)',[id,'Late Merkur','Merkur Spiel-Arena','2099-01-10','23:30']);
  assert.equal((await db.query('select match_time from public.matches where id=$1',[id])).rows[0].match_time,'23:30:00');

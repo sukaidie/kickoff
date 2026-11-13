@@ -10,7 +10,7 @@ create table public.matches (
  starts_at timestamptz generated always as ((match_date + match_time) at time zone 'Europe/Berlin') stored,
  cancelled boolean not null default false,
  created_at timestamptz not null default now(),
- check(venue <> 'Cosmo' or (match_time >= '10:00' and match_time <= '20:00'))
+ check(venue <> 'Cosmo' or (match_time >= case when extract(dow from match_date) in (0,6) then time '09:00' else time '10:00' end and match_time <= case when extract(dow from match_date) in (5,6) then time '23:00' when extract(dow from match_date)=0 then time '20:00' else time '21:00' end))
 );
 create table public.players (
  id uuid primary key default gen_random_uuid(),
