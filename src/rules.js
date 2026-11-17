@@ -1,17 +1,17 @@
 export const money = cents => new Intl.NumberFormat('en-IE',{style:'currency',currency:'EUR'}).format(cents/100);
-export const duration = count => count >= 15 ? 120 : 90;
+export const duration = (count,override=null) => override ?? (count >= 15 ? 120 : 90);
 function easter(y) { const a=y%19,b=Math.floor(y/100),c=y%100,d=Math.floor(b/4),e=b%4,f=Math.floor((b+8)/25),g=Math.floor((b-f+1)/3),h=(19*a+b-d-g+15)%30,i=Math.floor(c/4),k=c%4,l=(32+2*e+2*i-h-k)%7,m=Math.floor((a+11*h+22*l)/451),n=h+l-7*m+114; return new Date(Date.UTC(y,Math.floor(n/31)-1,n%31+1)); }
 export function holiday(date) {const y=+date.slice(0,4); if(['01-01','05-01','10-03','11-01','12-25','12-26'].includes(date.slice(5))) return true; return [-2,1,39,50,60].some(offset=>{const d=easter(y); d.setUTCDate(d.getUTCDate()+offset);return d.toISOString().slice(0,10)===date;});}
 export function cosmoHours(date) {const day=new Date(date+'T12:00:00Z').getUTCDay();return {open:[0,6].includes(day)?540:600,close:[5,6].includes(day)?1500:day===0?1320:1380};}
 export function validateCosmoTime(date,time) {const {open,close}=cosmoHours(date),start=Number(time.slice(0,2))*60+Number(time.slice(3,5));if(start<open||start+120>close)throw new Error('Choose a Cosmo kick-off within the opening hours for this date, allowing 120 minutes before closing.');}
-export function quote(venue,date,time,count) {if(venue==='Merkur Spiel-Arena')return 0;if(venue!=='Cosmo')return null;const weekend=[0,6].includes(new Date(date+'T12:00:00Z').getUTCDay())||holiday(date);const start=Number(time.slice(0,2))*60+Number(time.slice(3,5));const end=start+duration(count);const {open,close}=cosmoHours(date);if(start<open||end>close||(!weekend&&end>1320))return null;let cents=0;for(let m=start;m<end;m++)cents+=(weekend?7600:m<840?4000:m<1020?6400:8000)/60;return Math.round(cents);}
+export function quote(venue,date,time,count,override=null) {if(venue==='Merkur Spiel-Arena')return 0;if(venue!=='Cosmo')return null;const weekend=[0,6].includes(new Date(date+'T12:00:00Z').getUTCDay())||holiday(date);const start=Number(time.slice(0,2))*60+Number(time.slice(3,5));const end=start+duration(count,override);const {open,close}=cosmoHours(date);if(start<open||end>close||(!weekend&&end>1320))return null;let cents=0;for(let m=start;m<end;m++)cents+=(weekend?7600:m<840?4000:m<1020?6400:8000)/60;return Math.round(cents);}
 export function shares(total,count) {return count ? Array.from({length:count},(_,i)=>Math.floor(total/count)+(i<total%count?1:0)) : [];}
 export function voucherPercent(start,now=Date.now()) {const hours=(new Date(start).getTime()-now)/3600000;return hours>48?100:hours>=24?50:0;}
 // Convert a venue-local wall clock to an instant, independently of the visitor's timezone.
 export function berlinInstant(date,time) {let value=new Date(`${date}T${time}:00Z`);for(let i=0;i<3;i++){const p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(value).map(p=>[p.type,p.value]));const represented=Date.parse(`${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}:00Z`);value=new Date(+value+Date.parse(`${date}T${time}:00Z`)-represented);}return value.toISOString();}
 
-export function timeRange(startsAt,count) {
- const start=new Date(startsAt),end=new Date(+start+duration(count)*60000);
+export function timeRange(startsAt,count,override=null) {
+ const start=new Date(startsAt),end=new Date(+start+duration(count,override)*60000);
  const time=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
  const day=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'});
  return `${time.format(start)}–${time.format(end)}${day.format(start)!==day.format(end)?' (+1 day)':''}`;
@@ -33,7 +33,7 @@ export function attendanceRanking(matches,players,now=Date.now()) {
  const totals=new Map();
  for(const match of matches){
   const team=byMatch.get(match.id)||[];
-  if(match.cancelled||/^TEST\s*·/i.test(match.title||'')||Date.parse(match.starts_at)+duration(team.length)*60000>now)continue;
+  if(match.cancelled||/^TEST\s*·/i.test(match.title||'')||Date.parse(match.starts_at)+duration(team.length,match.duration_override_minutes)*60000>now)continue;
   if(!Number.isFinite(Date.parse(match.starts_at)))continue;
   const seen=new Set();
   for(const player of team){
@@ -63,4 +63,18 @@ export function paymentStatus(match,player,now=Date.now()) {
 
 export function registrationNameKey(name) {
  return String(name??'').normalize('NFKC').trim().replace(/\s+/gu,' ').toLowerCase();
+}
+
+export function minutesFromEnd(startsAt,endTime) {
+ const date=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date(startsAt));
+ let end=berlinInstant(date,endTime);
+ if(Date.parse(end)<=Date.parse(startsAt)){const next=new Date(date+'T12:00:00Z');next.setUTCDate(next.getUTCDate()+1);end=berlinInstant(next.toISOString().slice(0,10),endTime);}
+ const minutes=(Date.parse(end)-Date.parse(startsAt))/60000;
+ if(!Number.isInteger(minutes)||minutes<1||minutes>1440)throw new Error('Choose an end time within 24 hours of kick-off.');
+ return minutes;
+}
+
+export function validateCosmoDuration(date,time,minutes) {
+ const {open,close}=cosmoHours(date),start=Number(time.slice(0,2))*60+Number(time.slice(3,5));
+ if(start<open||start+minutes>close)throw new Error('Cosmo must finish within the opening hours for this date.');
 }

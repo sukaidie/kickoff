@@ -1,6 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {duration,holiday,quote,cosmoHours,validateCosmoTime,shares,voucherPercent,berlinInstant,timeRange,scheduleView,paymentTrackingAvailable,attendanceRanking,orderSquad} from '../src/rules.js';
+import {minutesFromEnd,validateCosmoDuration} from '../src/rules.js';
 test('duration changes at the fifteenth player',()=>{assert.equal(duration(14),90);assert.equal(duration(15),120);assert.equal(duration(16),120);assert.equal(quote('Cosmo','2026-10-30','18:00',14),12000);assert.equal(quote('Cosmo','2026-10-30','18:00',15),16000);});
 test('Cosmo bands and partial hours',()=>{assert.equal(quote('Cosmo','2026-10-30','10:00',1),6000);assert.equal(quote('Cosmo','2026-10-30','13:30',1),8400);assert.equal(quote('Cosmo','2026-10-30','16:30',1),11200);assert.equal(quote('Cosmo','2026-10-30','18:00',16),16000);});
 test('weekends and NRW fixed and movable public holidays',()=>{for(const date of ['2026-04-03','2026-04-06','2026-05-14','2026-05-25','2026-06-04','2026-11-01','2026-12-25']){assert.equal(holiday(date),true,date);assert.equal(quote('Cosmo',date,'10:00',1),11400);}assert.equal(holiday('2026-10-31'),false);assert.equal(quote('Cosmo','2026-10-31','10:00',16),15200);});
@@ -53,4 +54,17 @@ test('current host appears first without mutating signup timestamps or input ord
 test('Cosmo opening hours follow the match weekday with room for 120 minutes',()=>{
  for(const [date,open,last] of [['2026-11-09','10:00','21:00'],['2026-11-10','10:00','21:00'],['2026-11-11','10:00','21:00'],['2026-11-12','10:00','21:00'],['2026-11-13','10:00','23:00'],['2026-11-14','09:00','23:00'],['2026-11-15','09:00','20:00']]){validateCosmoTime(date,open);validateCosmoTime(date,last);assert.throws(()=>validateCosmoTime(date,'08:59'));assert.throws(()=>validateCosmoTime(date,'23:01'));}
  assert.equal(quote('Cosmo','2026-11-14','09:00',15),15200);assert.equal(quote('Cosmo','2026-11-14','23:00',15),15200);assert.equal(quote('Cosmo','2026-11-13','23:00',15),null);
+});
+
+test('manual duration controls end time, pricing and ranking instead of the 15-player threshold',()=>{
+ assert.equal(duration(15,90),90);assert.equal(duration(30,90),90);assert.equal(duration(14,null),90);assert.equal(duration(15,null),120);
+ assert.equal(timeRange('2026-11-20T17:00:00Z',15,90),'18:00–19:30');assert.equal(quote('Cosmo','2026-11-20','18:00',15,90),12000);assert.equal(quote('Cosmo','2026-11-20','18:00',15,null),16000);
+ assert.equal(minutesFromEnd('2026-11-20T17:00:00Z','19:30'),90);assert.equal(minutesFromEnd('2026-11-20T22:00:00Z','00:30'),90);
+ const match={id:'manual',title:'Manual timing',venue:'Cosmo',starts_at:'2026-11-20T17:00:00Z',duration_override_minutes:90};const team=Array.from({length:15},(_,i)=>({id:String(i),match_id:'manual',name:'Player '+i}));assert.equal(attendanceRanking([match],team,Date.parse('2026-11-20T18:31:00Z')).length,15);assert.equal(attendanceRanking([{...match,duration_override_minutes:null}],team,Date.parse('2026-11-20T18:31:00Z')).length,0);
+});
+
+test('manual durations respect weekday closing hours and Saturday overnight rates',()=>{
+ assert.doesNotThrow(()=>validateCosmoDuration('2026-11-21','23:00',90));assert.equal(quote('Cosmo','2026-11-21','23:00',15,90),11400);
+ assert.throws(()=>validateCosmoDuration('2026-11-22','21:00',90),/opening hours/);
+ assert.doesNotThrow(()=>validateCosmoDuration('2026-11-23','21:00',90));assert.equal(quote('Cosmo','2026-11-23','21:00',15,90),null);
 });

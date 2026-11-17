@@ -38,7 +38,7 @@ Anonymous access is intentionally open, not identity verification. Clearing brow
 ## Rules
 
 - Venues: Cosmo and Merkur Spiel-Arena. Merkur matches are **Free**, with no venue fee or per-player payment.
-- 0–14 players: 90 minutes. 15+ players: 120 minutes. Leaving can reduce duration again.
+- By default, 0–14 players: 90 minutes and 15+ players: 120 minutes. A host-set custom end time overrides this automatic rule until reset.
 - Cosmo: weekdays 10:00–14:00 €40/h, 14:00–17:00 €64/h, 17:00–22:00 €80/h. Weekends and all NRW statewide public holidays: €76/h. Minute-by-minute calculation splits a booking across rate bands.
 - NRW holidays include New Year, Good Friday, Easter Monday, Labour Day, Ascension, Whit Monday, Corpus Christi, German Unity Day, All Saints, and both Christmas holidays.
 - Cosmo hours: Mon–Thu 10:00–23:00, Fri 10:00–01:00 next day, Sat 09:00–01:00 next day, Sun 09:00–22:00. Kick-offs reserve 120 minutes before closing; opening hours follow the match weekday. Weekday costs extending past the published 22:00 rate band are TBC. Dates are interpreted in Europe/Berlin, independently of the visitor's timezone.
@@ -186,3 +186,13 @@ In **Past matches**, the host can use **Add someone else** for started or finish
 ## Updated Cosmo opening hours
 
 Apply `supabase/migrations/20261113_cosmo_opening_hours.sql` to existing projects. It replaces the fixed 10:00–20:00 kick-off constraint with weekday-specific limits, including Saturday and Sunday 09:00 starts. Run it before using the updated frontend.
+
+## Host-set end time
+
+Run `supabase/migrations/20261117_match_duration.sql` in the Supabase SQL Editor. It is safe to rerun and preserves existing matches; a null `duration_override_minutes` keeps the original automatic calculation. New installations include it in `schema.sql`.
+
+The current host can use **Edit end time** to choose **Automatic · based on player count** or **Custom end time**. For example, 15 players at 18:00 normally end at 20:00; setting 19:30 stores a 90-minute override. It remains 90 minutes if registrations change. Switching back to Automatic clears the override. The administrator can also adjust other hosts' matches through an independently checked admin RPC.
+
+The display, duration, Cosmo total, per-player shares, voucher estimates and historical attendance completion time use the effective duration. A custom end time is interpreted in Europe/Berlin; an earlier clock time means next day. Overrides must be 1–1440 minutes and fit the date-specific Cosmo opening hours. Rates that the existing pricing rules do not cover remain unconfirmed. Existing opening-hour and past-host registration rules are preserved. Venue booking changes must still be arranged separately.
+
+An override stores elapsed minutes: editing kick-off later preserves that custom duration. Hosts cannot change cancelled matches; Admin retains its existing ability to manage cancelled records. The match row is locked for authorization and validation, and a database trigger also checks duration when the venue, date or start time changes. This does not weaken existing cancellation or automatic underfilled-match rules.
