@@ -13,7 +13,7 @@ test('host switches Saturday 09:00 Merkur to Cosmo without losing its time',asyn
   if(path.endsWith('/matches'))data=[game,other];
   if(path.endsWith('/players'))data=team;
   if(path.endsWith('/user'))data=user;
-  if(path.includes('/rpc/')){
+  if(path.includes('/rpc/')&&!path.endsWith('/get_match_payment_details')){
    const args=req.postDataJSON();expect(args.p_match).toBe(mid);
    if(path.endsWith('/leave_match'))team=team.filter(p=>p.user_id!==uid);
    if(path.endsWith('/add_player')){expect(args.p_name).toBe('New guest');team.push({id:'added-guest',match_id:mid,user_id:null,name:args.p_name,created_at:'2026-10-30T12:01:00Z'});}

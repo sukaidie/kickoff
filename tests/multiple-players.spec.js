@@ -8,7 +8,7 @@ test('non-host can add multiple players and manage their entries without gaining
  await page.route('https://pikwbxrctsfgnqipuevz.supabase.co/**',async route=>{
   const req=route.request(),path=new URL(req.url()).pathname;let data=null;
   if(path.endsWith('/matches'))data=[game];if(path.endsWith('/players'))data=team;if(path.endsWith('/user'))data=user;
-  if(path.includes('/rpc/')){const args=req.postDataJSON();expect(args.p_match).toBe(mid);
+  if(path.includes('/rpc/')&&!path.endsWith('/get_match_payment_details')){const args=req.postDataJSON();expect(args.p_match).toBe(mid);
    if(path.endsWith('/add_player'))team.push({id:`new-${++next}`,match_id:mid,user_id:null,added_by:uid,name:args.p_name,created_at:`2026-10-30T12:01:0${next}Z`});
    else if(path.endsWith('/edit_player')){const p=team.find(p=>p.id===args.p_player);expect(p.added_by).toBe(uid);p.name=args.p_name;}
    else if(path.endsWith('/remove_player')){expect(team.find(p=>p.id===args.p_player).added_by).toBe(uid);team=team.filter(p=>p.id!==args.p_player);}
