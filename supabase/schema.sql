@@ -455,10 +455,12 @@ create table if not exists public.match_payment_details (
  updated_at timestamptz not null default now(),
  updated_by uuid not null references auth.users(id)
 );
+alter table public.match_payment_details add column if not exists account_holder text check(account_holder is null or length(account_holder)<=200);
 alter table public.match_payment_details enable row level security;
 revoke all on public.match_payment_details from public,anon,authenticated;
+drop function if exists public.get_match_payment_details(text);
 create or replace function public.get_match_payment_details(p_token text default null)
-returns table(match_id uuid,paypal text,iban text,updated_at timestamptz)
+returns table(match_id uuid,paypal text,iban text,account_holder text,updated_at timestamptz)
 language plpgsql security definer set search_path = '' as $$
 declare elevated boolean:=false;
 begin
@@ -467,7 +469,7 @@ begin
   if not public.admin_valid(p_token) then raise exception 'Admin session expired. Sign in again';end if;
   elevated:=true;
  end if;
- return query select d.match_id,d.paypal,d.iban,d.updated_at
+ return query select d.match_id,d.paypal,d.iban,d.account_holder,d.updated_at
  from public.match_payment_details d join public.matches m on m.id=d.match_id
  where m.venue='Cosmo' and (m.booked or m.owner_id=auth.uid() or elevated)
  order by d.match_id;
@@ -505,4 +507,18 @@ begin
 end $$;
 revoke all on function public.get_match_payment_details(text),public.set_match_payment_details(uuid,text,text,text) from public,anon;
 grant execute on function public.get_match_payment_details(text),public.set_match_payment_details(uuid,text,text,text) to authenticated;
+
+-- Keep the original four-argument setter for older browser tabs. It preserves
+-- the account holder; the five-argument version explicitly sets/clears it.
+create or replace function public.set_match_payment_details(p_match uuid,p_paypal text,p_iban text,p_account_holder text,p_token text)
+returns void language plpgsql security definer set search_path = '' as $$
+declare holder text;
+begin
+ holder:=nullif(btrim(p_account_holder),'');
+ if length(holder)>200 or holder~'[[:cntrl:]]' then raise exception 'Enter an account holder name up to 200 characters';end if;
+ perform public.set_match_payment_details(p_match,p_paypal,p_iban,p_token);
+ update public.match_payment_details set account_holder=holder where match_id=p_match;
+end $$;
+revoke all on function public.set_match_payment_details(uuid,text,text,text,text) from public,anon;
+grant execute on function public.set_match_payment_details(uuid,text,text,text,text) to authenticated;
 commit;
